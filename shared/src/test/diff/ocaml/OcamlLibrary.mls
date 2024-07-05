@@ -1,0 +1,122 @@
+:NoLibrary
+
+// common data types
+type ('a, 'b) either = Left of 'a | Right of 'b
+type 'a option = None | Some of 'a
+//│ Defined type alias either[+'a, +'b]
+//│ Defined class Left[+'a]
+//│ Defined class Right[+'b]
+//│ Defined type alias option[+'a]
+//│ Defined class None
+//│ Defined class Some[+'a]
+//│ Left: 'a -> either['a, 'b]
+//│ Right: 'a -> either['b, 'a]
+//│ None: option['a]
+//│ Some: 'a -> option['a]
+
+// helper functions
+let raise: 'a -> nothing
+let fst: ('a * 'b) -> 'a
+let snd: ('a * 'b) -> 'b
+let print_int: int -> unit
+let print_string: string -> unit
+let print_endline: string -> unit
+let string_of_int: int -> string
+let failwith: string -> 'a
+//│ raise: 'a -> nothing
+//│ fst: ('a, 'b,) -> 'a
+//│ snd: ('a, 'b,) -> 'b
+//│ print_int: int -> unit
+//│ print_string: string -> unit
+//│ print_endline: string -> unit
+//│ string_of_int: int -> string
+//│ failwith: string -> 'a
+
+// string
+let (^): string -> string -> string
+let String_length: string -> int
+//│ ^: string -> string -> string
+//│ String_length: string -> int
+
+// arithmetic
+let (+): int -> int -> int
+let (-): int -> int -> int
+let ( * ): int -> int -> int
+let ( / ): int -> int -> int
+let ( % ): int -> int -> int
+let abs: int -> int
+let mod: int -> int -> int
+let succ: int -> int
+let pred: int -> int
+//│ +: int -> int -> int
+//│ -: int -> int -> int
+//│ *: int -> int -> int
+//│ /: int -> int -> int
+//│ %: int -> int -> int
+//│ abs: int -> int
+//│ mod: int -> int -> int
+//│ succ: int -> int
+//│ pred: int -> int
+
+// comparison operators
+let (<): 'a -> 'a -> bool
+let (<=): 'a -> 'a -> bool
+let (>): 'a -> 'a -> bool
+let (>=): 'a -> 'a -> bool
+let (<>): 'a -> 'a -> bool
+let (==): 'a -> 'a -> bool
+let (!=): 'a -> 'a -> bool
+//│ <: 'a -> 'a -> bool
+//│ <=: 'a -> 'a -> bool
+//│ >: 'a -> 'a -> bool
+//│ >=: 'a -> 'a -> bool
+//│ <>: 'a -> 'a -> bool
+//│ ==: 'a -> 'a -> bool
+//│ !=: 'a -> 'a -> bool
+
+// list
+let List.length: 'a list -> int
+let List.mem: 'a -> 'a list -> bool
+let List.append: 'a list -> 'a list -> 'a list
+let (@): 'a list -> 'a list -> 'a list
+let List.map: ('a -> 'b) -> 'a list -> 'b list
+let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+let List.hd: 'a list -> 'a
+let List.rev: 'a list -> 'a list
+let List.combine: 'a list -> 'b list -> ('a * 'b) list
+//│ List.length: list['a] -> int
+//│ List.mem: 'a -> list['a] -> bool
+//│ List.append: list['a] -> list['a] -> list['a]
+//│ @: list['a] -> list['a] -> list['a]
+//│ List.map: ('a -> 'b) -> list['a] -> list['b]
+//│ List.fold_left: ('a -> 'b -> 'a) -> 'a -> list['b] -> 'a
+//│ List.hd: list['a] -> 'a
+//│ List.rev: list['a] -> list['a]
+//│ List.combine: list['a] -> list['b] -> list[('a, 'b,)]
+
+// float
+let (+.): float -> float -> float
+let (-.): float -> float -> float
+let ( *. ): float -> float -> float
+let ( /. ): float -> float -> float
+let ( ** ): float -> float -> float
+let atan: float -> float
+let sin: float -> float
+let cos: float -> float
+let tan: float -> float
+//│ +.: float -> float -> float
+//│ -.: float -> float -> float
+//│ *.: float -> float -> float
+//│ /.: float -> float -> float
+//│ **: float -> float -> float
+//│ atan: float -> float
+//│ sin: float -> float
+//│ cos: float -> float
+//│ tan: float -> float
+
+let (&&): bool -> bool -> bool
+let (||): bool -> bool -> bool
+let not: bool -> bool
+//│ &&: bool -> bool -> bool
+//│ ||: bool -> bool -> bool
+//│ not: bool -> bool

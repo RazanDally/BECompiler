@@ -1,0 +1,270 @@
+
+
+:unify
+let h y = (not y, (if true then y else 5))
+//│ [ERROR] Type `int` does not match `bool`
+//│ 
+//│         (int) ---> (?b) <--- (?a) ---> (bool)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                                                ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                           ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?b) is assumed for
+//│ ▲  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                           ^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                                         ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │               ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │               ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                        ^
+//│ ▼ 
+//│ ◉ (bool) comes from
+//│    - lib. let not: bool -> bool
+//│                    ^^^^
+//│ h: 'a -> (bool, 'a,)
+//│   where
+//│     'a = int, bool
+//│ U max: 2, total: 7
+//│ UERR 1 errors
+//│ L: 0 [int ~ bool, int <: α43', α43' :> α42', α42' <: bool]
+
+
+
+
+
+
+:unify
+let h y = (not y, (if true then y else 5))
+//│ [ERROR] Type `int` does not match `bool`
+//│ 
+//│         (int) ---> (?b) <--- (?a) ---> (bool)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                                                ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                           ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?b) is assumed for
+//│ ▲  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                           ^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                                         ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │               ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │               ^
+//│ │  - l.1  let h y = (not y, (if true then y else 5))
+//│ │                        ^
+//│ ▼ 
+//│ ◉ (bool) comes from
+//│    - lib. let not: bool -> bool
+//│                    ^^^^
+//│ h: 'a -> (bool, 'a,)
+//│   where
+//│     'a = int, bool
+//│ U max: 2, total: 7
+//│ UERR 1 errors
+//│ L: 0 [int ~ bool, int <: α46', α46' :> α45', α45' <: bool]
+
+
+
+
+
+
+:unify
+let confluence z = if true then z else 5
+confluence true
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) ---> (?a) ---> (?b) <--- (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.2  confluence true
+//│ │                    ^^^^
+//│ │  - l.1  let confluence z = if true then z else 5
+//│ │                        ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.1  let confluence z = if true then z else 5
+//│ │                        ^
+//│ │  - l.1  let confluence z = if true then z else 5
+//│ │                                         ^
+//│ │  - l.1  let confluence z = if true then z else 5
+//│ │                            ^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?b) is assumed for
+//│ ▲  - l.1  let confluence z = if true then z else 5
+//│ │                            ^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.1  let confluence z = if true then z else 5
+//│                                                  ^
+//│ confluence: int -> int
+//│ res: 'a
+//│   where
+//│     'a = bool, int
+//│ U max: 2, total: 7
+//│ UERR 1 errors
+//│ L: 0 [bool ~ int, bool <: α51, α51 <: α52, α52 :> int]
+
+
+
+
+let mkpair x y = (x, confluence y)
+let conflict x = mkpair (not x) x
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) <--- (?b) ---> (?c) ---> (?d) ---> (?a) <--- (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ ▲  - lib. let not: bool -> bool
+//│ │                  ^^^^
+//│ │  - l.2  let conflict x = mkpair (not x) x
+//│ │                                      ^
+//│ │  - l.2  let conflict x = mkpair (not x) x
+//│ │                      ^
+//│ │ 
+//│ ◉ (?b) is assumed for
+//│ │  - l.2  let conflict x = mkpair (not x) x
+//│ │                      ^
+//│ │  - l.2  let conflict x = mkpair (not x) x
+//│ │                                         ^
+//│ │  - l.1  let mkpair x y = (x, confluence y)
+//│ │                      ^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│ │  - l.1  let mkpair x y = (x, confluence y)
+//│ │                      ^
+//│ │  - l.1  let mkpair x y = (x, confluence y)
+//│ │                                         ^
+//│ │  - l.-37let confluence z = if true then z else 5
+//│ │                        ^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.-37let confluence z = if true then z else 5
+//│ │                        ^
+//│ │  - l.-37let confluence z = if true then z else 5
+//│ │                                         ^
+//│ │  - l.-37let confluence z = if true then z else 5
+//│ │                            ^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.-37let confluence z = if true then z else 5
+//│ │                            ^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.-37let confluence z = if true then z else 5
+//│                                                  ^
+//│ mkpair: 'a -> 'b -> ('a, int,)
+//│ conflict: bool -> (bool, 'a,)
+//│   where
+//│     'a = bool, int
+//│ U max: 2, total: 8
+//│ UERR 1 errors
+//│ L: 0 [bool ~ int, bool :> α60', α60' <: α62', α62' <: α63', α63' <: α64', α64' :> int]
+
+
+
+let rec digitsOfInt n =
+  if n <= 0 then [] else (digitsOfInt (n / 10)) @ [n mod 10]
+//│ digitsOfInt: int -> list[int]
+
+let rec addNumbs n = match n with | [] -> 0 | h::t -> h + (addNumbs t)
+//│ addNumbs: list[int] -> int
+
+let digits n = digitsOfInt (abs n)
+//│ digits: int -> list[int]
+
+
+let rec additivePersistence n =
+  match digits n with
+  | [] -> 0
+  | h::t -> if (addNumbs (h :: t)) >= 10 then false else true
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) ---> (?a) ---> (?b) <--- (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.4    | h::t -> if (addNumbs (h :: t)) >= 10 then false else true
+//│ │                                                       ^^^^^
+//│ │  - l.4    | h::t -> if (addNumbs (h :: t)) >= 10 then false else true
+//│ │                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.4    | h::t -> if (addNumbs (h :: t)) >= 10 then false else true
+//│ │                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.2    match digits n with
+//│ │           ^^^^^^^^^^^^^^^^^^^
+//│ │           | [] -> 0 ...
+//│ │           ^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?b) is assumed for
+//│ ▲  - l.2    match digits n with
+//│ │           ^^^^^^^^^^^^^^^^^^^
+//│ │           | [] -> 0 ...
+//│ │           ^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.3    | [] -> 0
+//│                     ^
+//│ additivePersistence: 'a -> 'b
+//│   where
+//│     'b = bool, int
+//│ U max: 4, total: 44
+//│ UERR 1 errors
+//│ L: 0 [bool ~ int, bool <: α114', α114' <: α105', α105' :> int]
+
+// The unification chain terminates at a higher level
+// because int is a direct parameter of the list
+// if it were a type parameter that was unified with int
+// the representation would handle it correctly
+let y x = [x]
+let k a = if a then [2] else y true
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) ---> (?b) ~~~~ (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.2  let k a = if a then [2] else y true
+//│ │                                        ^^^^
+//│ ▼ 
+//│ ◉ (?b) is assumed for
+//│    - l.1  let y x = [x]
+//│                 ^
+//│   ◉ (?b list) comes from
+//│   │  - l.1  let y x = [x]
+//│   │                   ^^^
+//│   │  - l.2  let k a = if a then [2] else y true
+//│   │                                      ^^^^^^
+//│   │  - l.2  let k a = if a then [2] else y true
+//│   │                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?a) is assumed for
+//│   ▲  - l.2  let k a = if a then [2] else y true
+//│   │                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (int list) comes from
+//│      - l.2  let k a = if a then [2] else y true
+//│                                 ^^^
+//│ ◉ (int) comes from
+//│    - l.2  let k a = if a then [2] else y true
+//│                                ^
+//│ y: 'a -> list['a]
+//│ k: bool -> 'a
+//│   where
+//│     'a = list['b], list[int]
+//│     'b = int, bool
+//│ U max: 1, total: 7
+//│ UERR 1 errors
+//│ L: 1 [bool ~ int, bool <: α120', [α120' - list[[α120']] ~ list[[int]] - int, L: 0 [list[[α120']] ~ list[[int]], list[[α120']] <: α119', α119' :> list[[int]]]]]

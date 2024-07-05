@@ -1,0 +1,82 @@
+
+
+let f = if true then [0, 1] else [0], [1]
+//│ [ERROR] Type `int list * int list` does not match `(int * int) list`
+//│ 
+//│         (int list * int list) ---> (?a) <--- ((int * int) list)
+//│ 
+//│ ◉ (int list * int list) comes from
+//│ │  - l.1  let f = if true then [0, 1] else [0], [1]
+//│ │                                          ^^^^^^^^
+//│ │  - l.1  let f = if true then [0, 1] else [0], [1]
+//│ │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.1  let f = if true then [0, 1] else [0], [1]
+//│ │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ ((int * int) list) comes from
+//│    - l.1  let f = if true then [0, 1] else [0], [1]
+//│                                ^^^^^^
+//│ f: 'a
+//│   where
+//│     'a = (list[int], list[int],), list[(int, int,)]
+//│ U max: 1, total: 4
+//│ UERR 1 errors
+//│ L: 0 [([list[[int]]], [list[[int]]],) ~ list[([[int]], [[int]],)], ([list[[int]]], [list[[int]]],) <: α42', α42' :> list[([[int]], [[int]],)]]
+
+let f x = if true then [0, 1] else x, [1]
+//│ [ERROR] Type `_ * int list` does not match `(int * int) list`
+//│ 
+//│         (_ * int list) ---> (?a) <--- ((int * int) list)
+//│ 
+//│ ◉ (_ * int list) comes from
+//│ │  - l.1  let f x = if true then [0, 1] else x, [1]
+//│ │                                            ^^^^^^
+//│ │  - l.1  let f x = if true then [0, 1] else x, [1]
+//│ │                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.1  let f x = if true then [0, 1] else x, [1]
+//│ │                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ ((int * int) list) comes from
+//│    - l.1  let f x = if true then [0, 1] else x, [1]
+//│                                  ^^^^^^
+//│ f: 'a -> 'b
+//│   where
+//│     'b = ('a, list[int],), list[(int, int,)]
+//│ U max: 1, total: 4
+//│ UERR 1 errors
+//│ L: 0 [([[α43']], [list[[int]]],) ~ list[([[int]], [[int]],)], ([[α43']], [list[[int]]],) <: α44', α44' :> list[([[int]], [[int]],)]]
+
+let test: (int * int) list
+//│ test: list[(int, int,)]
+
+let f x = if true then test else x, [1]
+//│ [ERROR] Type `_ * int list` does not match `(int * int) list`
+//│ 
+//│         (_ * int list) ---> (?a) <--- ((int * int) list)
+//│ 
+//│ ◉ (_ * int list) comes from
+//│ │  - l.1  let f x = if true then test else x, [1]
+//│ │                                          ^^^^^^
+//│ │  - l.1  let f x = if true then test else x, [1]
+//│ │                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.1  let f x = if true then test else x, [1]
+//│ │                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.1  let f x = if true then test else x, [1]
+//│ │                                ^^^^
+//│ │ 
+//│ ◉ ((int * int) list) comes from
+//│    - l.-2 let test: (int * int) list
+//│                      ^^^^^^^^^^^^^^^
+//│ f: 'a -> 'b
+//│   where
+//│     'b = ('a, list[int],), list[(int, int,)]
+//│ U max: 1, total: 4
+//│ UERR 1 errors
+//│ L: 0 [([[α45']], [list[[int]]],) ~ list[([int], [int],)], ([[α45']], [list[[int]]],) <: α46', α46' :> list[([int], [int],)]]
+

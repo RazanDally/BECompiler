@@ -1,0 +1,114 @@
+let sqsum xs =
+  let f a x = match x with | [] -> 0 | h::t -> 1 in
+  let base = List.hd xs in List.fold_left f base xs;;
+//│ [ERROR] Type `int` does not match `_ list`
+//│ 
+//│         (int) ---> (?f) ~~~~ (?a) <--- (?c) ~~~~ (?b) ~~~~ (?e) ---> (_ list)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│ │                                            ^
+//│ ▼ 
+//│ ◉ (?f) is assumed for
+//│    - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?e -> ?f) comes from
+//│      - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?e -> ?f) comes from
+//│     │  - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│     │                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│     │                                                   ^
+//│     ▼ 
+//│     ◉ (?a -> ?b -> ?a) comes from
+//│        - lib. let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+//│                                     ^^^^^^^^^^^^^^
+//│   ◉ (?b -> ?a) comes from
+//│      - lib. let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+//│                                         ^^^^^^^^
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│ │                                                     ^^^^
+//│ │ 
+//│ ◉ (?c) is assumed for
+//│    - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│                        ^^^^^^^^^^
+//│   ◉ (?c list) comes from
+//│   ▲  - lib. let List.hd: 'a list -> 'a
+//│   │                      ^^^^^^^
+//│   │  - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│   │                              ^^
+//│   │  - l.1  let sqsum xs =
+//│   │                   ^^
+//│   │ 
+//│   ◉ (?d) is assumed for
+//│   │  - l.1  let sqsum xs =
+//│   │                   ^^
+//│   │  - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│   │                                                          ^^
+//│   ▼ 
+//│   ◉ (?b list) comes from
+//│      - lib. let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+//│                                                            ^^^^^^^
+//│ ◉ (?b) is assumed for
+//│   ◉ (?b -> ?a) comes from
+//│      - lib. let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+//│                                         ^^^^^^^^
+//│     ◉ (?a -> ?b -> ?a) comes from
+//│     ▲  - lib. let List.fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+//│     │                               ^^^^^^^^^^^^^^
+//│     │  - l.3    let base = List.hd xs in List.fold_left f base xs;;
+//│     │                                                   ^
+//│     │ 
+//│     ◉ (_ -> ?e -> ?f) comes from
+//│        - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?e -> ?f) comes from
+//│      - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ │  - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│ │                   ^
+//│ │  - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│ │                             ^
+//│ ▼ 
+//│ ◉ (_ list) comes from
+//│    - l.2    let f a x = match x with | [] -> 0 | h::t -> 1 in
+//│                                        ^^
+//│ sqsum: list['b] -> 'b
+//│   where
+//│     'b = int, list['a]
+//│ U max: 5, total: 31
+//│ UERR 1 errors
+//│ L: 2 [int ~ list['a52'], int <: α53', [α53' - (α51' -> α53') ~ (α49' -> α48') - α48', L: 1 [(α51' -> α53') ~ (α49' -> α48'), [(α51' -> α53') - (α50' -> (α51' -> α53')) ~ (α48' -> (α49' -> α48')) - (α49' -> α48'), L: 0 [(α50' -> (α51' -> α53')) ~ (α48' -> (α49' -> α48')), (α50' -> (α51' -> α53')) <: (α48' -> (α49' -> α48'))]]]], α48' :> α47', [α47' - list[α47'] ~ list[α49'] - α49', L: 0 [list[α47'] ~ list[α49'], list[α47'] :> α42', α42' <: list[α49']]], [α49' - (α49' -> α48') ~ (α51' -> α53') - α51', L: 1 [(α49' -> α48') ~ (α51' -> α53'), [(α49' -> α48') - (α48' -> (α49' -> α48')) ~ (α50' -> (α51' -> α53')) - (α51' -> α53'), L: 0 [(α48' -> (α49' -> α48')) ~ (α50' -> (α51' -> α53')), (α48' -> (α49' -> α48')) :> (α50' -> (α51' -> α53'))]]]], α51' <: list['a52']]
+
+let f x =
+  let g y =
+    let h = x y
+    in y
+  in let k = g 1 in g "hi"
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│         (string) ---> (?a) <--- (int)
+//│ 
+//│ ◉ (string) comes from
+//│ │  - l.5    in let k = g 1 in g "hi"
+//│ │                               ^^^^
+//│ │  - l.2    let g y =
+//│ │                 ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.2    let g y =
+//│ │                 ^
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.5    in let k = g 1 in g "hi"
+//│                          ^
+//│ f: ('a -> 'b) -> 'a
+//│   where
+//│     'a = string, int
+//│ U max: 1, total: 4
+//│ UERR 1 errors
+//│ L: 0 [string ~ int, string <: α56', α56' :> int]
+

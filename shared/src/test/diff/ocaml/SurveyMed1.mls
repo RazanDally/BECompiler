@@ -1,0 +1,1674 @@
+let wrap x = x :: []
+ 
+let test z cond = if cond
+ then wrap z
+ else wrap true
+ 
+let rec check cond =
+ test (if cond then false else check (not cond)) cond
+//│ [ERROR] Type `_ list` does not match `bool`
+//│ 
+//│         (?f list) ---> (?c) ~~~~ (?b) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (bool)
+//│ 
+//│ ◉ (?f list) comes from
+//│ │  - l.1  let wrap x = x :: []
+//│ │                      ^^^^^^^
+//│ │  - l.5   else wrap true
+//│ │               ^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│    - l.3  let test z cond = if cond
+//│                             ^^^^^^^
+//│            then wrap z ...
+//│            ^^^^^^^^^^^^^^^
+//│   ◉ (_ -> ?c) comes from
+//│   │  - l.7  let rec check cond =
+//│   │                       ^^^^^^
+//│   │          test (if cond then false else check (not cond)) cond
+//│   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (?check) is assumed for
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (bool -> ?b) comes from
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^
+//│ ◉ (?b) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                                        ^^^^^^^^^^^^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (bool) comes from
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                               ^^^^^
+//│ [ERROR] Type `_ list` does not match `bool`
+//│ 
+//│         (?e list) ---> (?c) ~~~~ (?b) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (bool)
+//│ 
+//│ ◉ (?e list) comes from
+//│ │  - l.1  let wrap x = x :: []
+//│ │                      ^^^^^^^
+//│ │  - l.4   then wrap z
+//│ │               ^^^^^^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│    - l.3  let test z cond = if cond
+//│                             ^^^^^^^
+//│            then wrap z ...
+//│            ^^^^^^^^^^^^^^^
+//│   ◉ (_ -> ?c) comes from
+//│   │  - l.7  let rec check cond =
+//│   │                       ^^^^^^
+//│   │          test (if cond then false else check (not cond)) cond
+//│   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (?check) is assumed for
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (bool -> ?b) comes from
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^
+//│ ◉ (?b) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                                        ^^^^^^^^^^^^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (bool) comes from
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                               ^^^^^
+//│ [ERROR] Type `_ list` does not match `bool`
+//│ 
+//│         (?f list) ---> (?c) ~~~~ (?b) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (bool)
+//│ 
+//│ ◉ (?f list) comes from
+//│ │  - l.1  let wrap x = x :: []
+//│ │                      ^^^^^^^
+//│ │  - l.5   else wrap true
+//│ │               ^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│    - l.3  let test z cond = if cond
+//│                             ^^^^^^^
+//│            then wrap z ...
+//│            ^^^^^^^^^^^^^^^
+//│   ◉ (_ -> ?c) comes from
+//│   │  - l.7  let rec check cond =
+//│   │                       ^^^^^^
+//│   │          test (if cond then false else check (not cond)) cond
+//│   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (?check) is assumed for
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (bool -> ?b) comes from
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^
+//│ ◉ (?b) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                                        ^^^^^^^^^^^^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (bool) comes from
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                               ^^^^^
+//│ [ERROR] Type `_ list` does not match `bool`
+//│ 
+//│         (?e list) ---> (?c) ~~~~ (?b) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (bool)
+//│ 
+//│ ◉ (?e list) comes from
+//│ │  - l.1  let wrap x = x :: []
+//│ │                      ^^^^^^^
+//│ │  - l.4   then wrap z
+//│ │               ^^^^^^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│    - l.3  let test z cond = if cond
+//│                             ^^^^^^^
+//│            then wrap z ...
+//│            ^^^^^^^^^^^^^^^
+//│   ◉ (_ -> ?c) comes from
+//│   │  - l.7  let rec check cond =
+//│   │                       ^^^^^^
+//│   │          test (if cond then false else check (not cond)) cond
+//│   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (?check) is assumed for
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (bool -> ?b) comes from
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^
+//│ ◉ (?b) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                                        ^^^^^^^^^^^^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (bool) comes from
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                               ^^^^^
+//│ [ERROR] Type `bool` does not match `_ list`
+//│ 
+//│         (bool) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) ~~~~ (?f) ~~~~ (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (?b) ~~~~ (?c) <--- (?f list)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                             ^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │                                        ^^^^^^^^^^^^^^^^
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?d) is assumed for
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   ▼ 
+//│   ◉ (?a) is assumed for
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │  - l.4   then wrap z
+//│   │                    ^
+//│   ▼ 
+//│   ◉ (?e) is assumed for
+//│      - l.1  let wrap x = x :: []
+//│                      ^
+//│     ◉ (?e list) comes from
+//│     │  - l.1  let wrap x = x :: []
+//│     │                      ^^^^^^^
+//│     │  - l.4   then wrap z
+//│     │               ^^^^^^
+//│     ▼ 
+//│     ◉ (?c) is assumed for
+//│        - l.3  let test z cond = if cond
+//│                                 ^^^^^^^
+//│                then wrap z ...
+//│                ^^^^^^^^^^^^^^^
+//│       ◉ (_ -> ?c) comes from
+//│       │  - l.7  let rec check cond =
+//│       │                       ^^^^^^
+//│       │          test (if cond then false else check (not cond)) cond
+//│       │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (?check) is assumed for
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (bool -> ?b) comes from
+//│          - l.8   test (if cond then false else check (not cond)) cond
+//│                                                ^^^^^
+//│     ◉ (?b) is assumed for
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^^^^^^^^^^^^
+//│       ◉ (bool -> ?b) comes from
+//│       ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│       │                                        ^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (?check) is assumed for
+//│       ▲  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (_ -> ?c) comes from
+//│          - l.7  let rec check cond =
+//│                               ^^^^^^
+//│                  test (if cond then false else check (not cond)) cond
+//│                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ◉ (?c) is assumed for
+//│     ▲  - l.3  let test z cond = if cond
+//│     │                           ^^^^^^^
+//│     │          then wrap z ...
+//│     │          ^^^^^^^^^^^^^^^
+//│     │  - l.5   else wrap true
+//│     │               ^^^^^^^^^
+//│     │ 
+//│     ◉ (?f list) comes from
+//│        - l.1  let wrap x = x :: []
+//│                            ^^^^^^^
+//│   ◉ (?f) is assumed for
+//│      - l.1  let wrap x = x :: []
+//│                          ^
+//│      - l.1  let wrap x = x :: []
+//│                      ^
+//│     ◉ (?f list) comes from
+//│     │  - l.1  let wrap x = x :: []
+//│     │                      ^^^^^^^
+//│     │  - l.5   else wrap true
+//│     │               ^^^^^^^^^
+//│     ▼ 
+//│     ◉ (?c) is assumed for
+//│        - l.3  let test z cond = if cond
+//│                                 ^^^^^^^
+//│                then wrap z ...
+//│                ^^^^^^^^^^^^^^^
+//│       ◉ (_ -> ?c) comes from
+//│       │  - l.7  let rec check cond =
+//│       │                       ^^^^^^
+//│       │          test (if cond then false else check (not cond)) cond
+//│       │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (?check) is assumed for
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (bool -> ?b) comes from
+//│          - l.8   test (if cond then false else check (not cond)) cond
+//│                                                ^^^^^
+//│     ◉ (?b) is assumed for
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^^^^^^^^^^^^
+//│       ◉ (bool -> ?b) comes from
+//│       ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│       │                                        ^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (?check) is assumed for
+//│       ▲  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (_ -> ?c) comes from
+//│          - l.7  let rec check cond =
+//│                               ^^^^^^
+//│                  test (if cond then false else check (not cond)) cond
+//│                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ◉ (?c) is assumed for
+//│     ▲  - l.3  let test z cond = if cond
+//│     │                           ^^^^^^^
+//│     │          then wrap z ...
+//│     │          ^^^^^^^^^^^^^^^
+//│     │  - l.4   then wrap z
+//│     │               ^^^^^^
+//│     │ 
+//│     ◉ (?e list) comes from
+//│        - l.1  let wrap x = x :: []
+//│                            ^^^^^^^
+//│   ◉ (?e) is assumed for
+//│   ▲  - l.1  let wrap x = x :: []
+//│   │                  ^
+//│   │  - l.4   then wrap z
+//│   │                    ^
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │ 
+//│   ◉ (?a) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (?d) is assumed for
+//│   ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?b) is assumed for
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                                          ^^^^^^^^^^^^^^^^
+//│   ◉ (bool -> ?b) comes from
+//│   ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│   │                                        ^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   │ 
+//│   ◉ (?check) is assumed for
+//│   ▲  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   │ 
+//│   ◉ (_ -> ?c) comes from
+//│      - l.7  let rec check cond =
+//│                           ^^^^^^
+//│              test (if cond then false else check (not cond)) cond
+//│              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ◉ (?c) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                           ^^^^^^^
+//│ │          then wrap z ...
+//│ │          ^^^^^^^^^^^^^^^
+//│ │  - l.5   else wrap true
+//│ │               ^^^^^^^^^
+//│ │ 
+//│ ◉ (?f list) comes from
+//│    - l.1  let wrap x = x :: []
+//│                        ^^^^^^^
+//│ [ERROR] Type `_ list` does not match `bool`
+//│ 
+//│         (?e list) ---> (?c) ~~~~ (?b) ---> (?d) ---> (?a) ---> (?e) ~~~~ (?f) ~~~~ (?e) ~~~~ (?f) ~~~~ (?e) ~~~~ (?f) ~~~~ (?e) <--- (?a) <--- (?d) <--- (bool)
+//│ 
+//│ ◉ (?e list) comes from
+//│ │  - l.1  let wrap x = x :: []
+//│ │                      ^^^^^^^
+//│ │  - l.4   then wrap z
+//│ │               ^^^^^^
+//│ ▼ 
+//│ ◉ (?c) is assumed for
+//│    - l.3  let test z cond = if cond
+//│                             ^^^^^^^
+//│            then wrap z ...
+//│            ^^^^^^^^^^^^^^^
+//│   ◉ (_ -> ?c) comes from
+//│   │  - l.7  let rec check cond =
+//│   │                       ^^^^^^
+//│   │          test (if cond then false else check (not cond)) cond
+//│   │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (?check) is assumed for
+//│   │  - l.7  let rec check cond =
+//│   │                 ^^^^^
+//│   ▼ 
+//│   ◉ (bool -> ?b) comes from
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^
+//│ ◉ (?b) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │                                        ^^^^^^^^^^^^^^^^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?d) is assumed for
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ ▼ 
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │                                        ^^^^^^^^^^^^^^^^
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?d) is assumed for
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   ▼ 
+//│   ◉ (?a) is assumed for
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │  - l.4   then wrap z
+//│   │                    ^
+//│   ▼ 
+//│   ◉ (?e) is assumed for
+//│      - l.1  let wrap x = x :: []
+//│                      ^
+//│     ◉ (?e list) comes from
+//│     │  - l.1  let wrap x = x :: []
+//│     │                      ^^^^^^^
+//│     │  - l.4   then wrap z
+//│     │               ^^^^^^
+//│     ▼ 
+//│     ◉ (?c) is assumed for
+//│        - l.3  let test z cond = if cond
+//│                                 ^^^^^^^
+//│                then wrap z ...
+//│                ^^^^^^^^^^^^^^^
+//│       ◉ (_ -> ?c) comes from
+//│       │  - l.7  let rec check cond =
+//│       │                       ^^^^^^
+//│       │          test (if cond then false else check (not cond)) cond
+//│       │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (?check) is assumed for
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (bool -> ?b) comes from
+//│          - l.8   test (if cond then false else check (not cond)) cond
+//│                                                ^^^^^
+//│     ◉ (?b) is assumed for
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^^^^^^^^^^^^
+//│       ◉ (bool -> ?b) comes from
+//│       ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│       │                                        ^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (?check) is assumed for
+//│       ▲  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (_ -> ?c) comes from
+//│          - l.7  let rec check cond =
+//│                               ^^^^^^
+//│                  test (if cond then false else check (not cond)) cond
+//│                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ◉ (?c) is assumed for
+//│     ▲  - l.3  let test z cond = if cond
+//│     │                           ^^^^^^^
+//│     │          then wrap z ...
+//│     │          ^^^^^^^^^^^^^^^
+//│     │  - l.5   else wrap true
+//│     │               ^^^^^^^^^
+//│     │ 
+//│     ◉ (?f list) comes from
+//│        - l.1  let wrap x = x :: []
+//│                            ^^^^^^^
+//│   ◉ (?f) is assumed for
+//│      - l.1  let wrap x = x :: []
+//│                          ^
+//│      - l.1  let wrap x = x :: []
+//│                      ^
+//│     ◉ (?f list) comes from
+//│     │  - l.1  let wrap x = x :: []
+//│     │                      ^^^^^^^
+//│     │  - l.5   else wrap true
+//│     │               ^^^^^^^^^
+//│     ▼ 
+//│     ◉ (?c) is assumed for
+//│        - l.3  let test z cond = if cond
+//│                                 ^^^^^^^
+//│                then wrap z ...
+//│                ^^^^^^^^^^^^^^^
+//│       ◉ (_ -> ?c) comes from
+//│       │  - l.7  let rec check cond =
+//│       │                       ^^^^^^
+//│       │          test (if cond then false else check (not cond)) cond
+//│       │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (?check) is assumed for
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       ▼ 
+//│       ◉ (bool -> ?b) comes from
+//│          - l.8   test (if cond then false else check (not cond)) cond
+//│                                                ^^^^^
+//│     ◉ (?b) is assumed for
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^^^^^^^^^^^^
+//│       ◉ (bool -> ?b) comes from
+//│       ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│       │                                        ^^^^^
+//│       │  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (?check) is assumed for
+//│       ▲  - l.7  let rec check cond =
+//│       │                 ^^^^^
+//│       │ 
+//│       ◉ (_ -> ?c) comes from
+//│          - l.7  let rec check cond =
+//│                               ^^^^^^
+//│                  test (if cond then false else check (not cond)) cond
+//│                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ◉ (?c) is assumed for
+//│     ▲  - l.3  let test z cond = if cond
+//│     │                           ^^^^^^^
+//│     │          then wrap z ...
+//│     │          ^^^^^^^^^^^^^^^
+//│     │  - l.4   then wrap z
+//│     │               ^^^^^^
+//│     │ 
+//│     ◉ (?e list) comes from
+//│        - l.1  let wrap x = x :: []
+//│                            ^^^^^^^
+//│   ◉ (?e) is assumed for
+//│   ▲  - l.1  let wrap x = x :: []
+//│   │                  ^
+//│   │  - l.4   then wrap z
+//│   │                    ^
+//│   │  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │ 
+//│   ◉ (?a) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                  ^
+//│   │  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (?d) is assumed for
+//│   ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│   │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│      - l.3  let test z cond = if cond
+//│                               ^^^^^^^
+//│              then wrap z ...
+//│              ^^^^^^^^^^^^^^^
+//│     ◉ (_ -> ?c) comes from
+//│     │  - l.7  let rec check cond =
+//│     │                       ^^^^^^
+//│     │          test (if cond then false else check (not cond)) cond
+//│     │          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (?check) is assumed for
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     ▼ 
+//│     ◉ (bool -> ?b) comes from
+//│        - l.8   test (if cond then false else check (not cond)) cond
+//│                                              ^^^^^
+//│   ◉ (?b) is assumed for
+//│      - l.8   test (if cond then false else check (not cond)) cond
+//│                                            ^^^^^^^^^^^^^^^^
+//│     ◉ (bool -> ?b) comes from
+//│     ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│     │                                        ^^^^^
+//│     │  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (?check) is assumed for
+//│     ▲  - l.7  let rec check cond =
+//│     │                 ^^^^^
+//│     │ 
+//│     ◉ (_ -> ?c) comes from
+//│        - l.7  let rec check cond =
+//│                             ^^^^^^
+//│                test (if cond then false else check (not cond)) cond
+//│                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?e list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │ 
+//│   ◉ (?f list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?f) is assumed for
+//│    - l.1  let wrap x = x :: []
+//│                        ^
+//│    - l.1  let wrap x = x :: []
+//│                    ^
+//│   ◉ (?f list) comes from
+//│   │  - l.1  let wrap x = x :: []
+//│   │                      ^^^^^^^
+//│   │  - l.5   else wrap true
+//│   │               ^^^^^^^^^
+//│   │  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   ▼ 
+//│   ◉ (?c) is assumed for
+//│   ▲  - l.3  let test z cond = if cond
+//│   │                           ^^^^^^^
+//│   │          then wrap z ...
+//│   │          ^^^^^^^^^^^^^^^
+//│   │  - l.4   then wrap z
+//│   │               ^^^^^^
+//│   │ 
+//│   ◉ (?e list) comes from
+//│      - l.1  let wrap x = x :: []
+//│                          ^^^^^^^
+//│ ◉ (?e) is assumed for
+//│ ▲  - l.1  let wrap x = x :: []
+//│ │                  ^
+//│ │  - l.4   then wrap z
+//│ │                    ^
+//│ │  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │ 
+//│ ◉ (?a) is assumed for
+//│ ▲  - l.3  let test z cond = if cond
+//│ │                  ^
+//│ │  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (?d) is assumed for
+//│ ▲  - l.8   test (if cond then false else check (not cond)) cond
+//│ │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (bool) comes from
+//│    - l.8   test (if cond then false else check (not cond)) cond
+//│                               ^^^^^
+//│ U max: 25, total: 112
+//│ UERR 6 errors
+//│ L: 3 [list[[α54']] ~ bool, list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], [α54' - list[[α54']] ~ list[[α53']] - α53', L: 2 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> α58', [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], [α54' - list[[α54']] ~ list[[α53']] - α53', L: 0 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> bool]
+//│ L: 1 [list[[α54']] ~ bool, list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 0 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> bool]
+//│ L: 2 [list[[α53']] ~ bool, list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> bool]
+//│ L: 2 [list[[α54']] ~ bool, list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], [α54' - list[[α54']] ~ list[[α53']] - α53', L: 0 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> bool]
+//│ L: 3 [bool ~ list[[α53']], bool <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 0 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], [α54' - list[[α54']] ~ list[[α53']] - α53', L: 2 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 1 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> α58', [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 1 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> α58', [α58' - ([bool] -> α58') ~ (α51' -> [α55']) - α55', L: 0 [([bool] -> α58') ~ (α51' -> [α55']), ([bool] -> α58') :> check50', check50' :> (α51' -> [α55'])]], α55' :> list[[α53']]]
+//│ L: 1 [list[[α53']] ~ bool, list[[α53']] <: α55', [α55' - (α51' -> [α55']) ~ ([bool] -> α58') - α58', L: 0 [(α51' -> [α55']) ~ ([bool] -> α58'), (α51' -> [α55']) <: check50', check50' <: ([bool] -> α58')]], α58' <: α57', α57' <: α52', α52' <: α54', [α54' - list[[α54']] ~ list[[α53']] - α53', L: 0 [list[[α54']] ~ list[[α53']], list[[α54']] <: α55', α55' :> list[[α53']]]], [α53' - list[[α53']] ~ list[[α54']] - α54', L: 0 [list[[α53']] ~ list[[α54']], list[[α53']] <: α55', α55' :> list[[α54']]]], α54' :> α52', α52' :> α57', α57' :> bool]
+
+
