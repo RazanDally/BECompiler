@@ -32,3 +32,67 @@ abstract class ModeType {
   def noExecution: Bool
   def debugVariance: Bool
 }
+
+
+case class Mode(
+                 expectTypeErrors: Bool = false,
+                 expectWarnings: Bool = false,
+                 expectParseErrors: Bool = false,
+                 fixme: Bool = false,
+                 showParse: Bool = false,
+                 verbose: Bool = false,
+                 noSimplification: Bool = false,
+                 explainErrors: Bool = false,
+                 dbg: Bool = false,
+                 dbgParsing: Bool = false,
+                 dbgSimplif: Bool = false,
+                 fullExceptionStack: Bool = false,
+                 stats: Bool = false,
+                 stdout: Bool = false,
+                 noExecution: Bool = false,
+                 debugVariance: Bool = false,
+                 unify: Bool = true,  // unify is on by default
+                 unifyDbg: Bool = false,
+                 tex: Bool = false,
+               ) extends ModeType {
+  def isDebugging: Bool = dbg || dbgSimplif
+}
+
+object ModeDefaults {
+  var allowTypeErrors = false
+  var allowParseErrors = false // TODO use
+  var showRelativeLineNums = false
+  // Parse and check the file with ocaml syntax and semantic rules
+  var ocamlMode = false
+  // load type definitions of ocaml standard library constructs
+  var ocamlLoadLibrary = false
+  var noProvs = false
+  var allowRuntimeErrors = false
+
+  // Define a map from command strings to functions that modify the mode
+  val modeActionMap: Map[String, Mode => Mode] = Map(
+    "" -> (_.copy(expectTypeErrors = true)),
+    "w" -> (_.copy(expectWarnings = true)),
+    "pe" -> (_.copy(expectParseErrors = true)),
+    "p" -> (_.copy(showParse = true)),
+    "d" -> (_.copy(dbg = true)),
+    "dp" -> (_.copy(dbgParsing = true)),
+    "ds" -> (_.copy(dbgSimplif = true)),
+    "s" -> (_.copy(fullExceptionStack = true)),
+    "v" -> (_.copy(verbose = true)),
+    "verbose" -> (_.copy(verbose = true)),
+    "ex" -> (_.copy(expectTypeErrors = true, explainErrors = true)),
+    "explain" -> (_.copy(expectTypeErrors = true, explainErrors = true)),
+    "ns" -> (_.copy(noSimplification = true)),
+    "no-simpl" -> (_.copy(noSimplification = true)),
+    "stats" -> (_.copy(stats = true)),
+    "showres" -> (_.copy(stdout = false)),
+    "ne" -> (_.copy(noExecution = true)),
+    "dv" -> (_.copy(debugVariance = true)),
+    "unify" -> (_.copy(unify = true)),
+    "unifyDbg" -> (_.copy(unifyDbg = true, unify = true)),
+    "tex" -> (_.copy(tex = true))
+    // Note: Commands affecting external variables are handled separately
+  )
+
+}

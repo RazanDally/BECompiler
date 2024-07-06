@@ -13,6 +13,9 @@ import org.scalatest.time._
 import org.scalatest.concurrent.{Signaler, TimeLimitedTests}
 import os.Path
 
+import ModeDefaults._
+import TestHelpersFuncs._
+import TestHelpersConsts._
 
 class DiffTests
   extends funsuite.AnyFunSuite
@@ -50,10 +53,8 @@ class DiffTests
         val basePath = file.segments.drop(dir.segmentCount).toList.init
         val testName = basePath.map(_ + "/").mkString + file.baseName
         test(testName) {
-    
-    val baseStr = basePath.mkString("/")
-    
-    val testStr = " " * (8 - baseStr.length) + baseStr + ": " + file.baseName
+
+    val testStr = getTestStr(basePath, file)
     
     if (!inParallel) print(s"Processing $testStr")
     
@@ -61,13 +62,6 @@ class DiffTests
     // if (!inParallel) print(s"${Console.CYAN}Processing${Console.RESET} $testStr ... ")
     
     val beginTime = System.nanoTime()
-    
-    val outputMarker = "//│ "
-
-    val diffBegMarker = "<<<<<<<"
-    val diffMidMarker = "======="
-    val diff3MidMarker = "|||||||" // * Appears under `git config merge.conflictstyle diff3` (https://stackoverflow.com/a/18131595/1518588)
-    val diffEndMarker = ">>>>>>>"
     
     val fileContents = os.read(file)
     val allLines = fileContents.splitSane('\n').toList
@@ -88,165 +82,54 @@ class DiffTests
     var declared: Map[Str, typer.PolymorphicType] = Map.empty
     val failures = mutable.Buffer.empty[Int]
     val unmergedChanges = mutable.Buffer.empty[Int]
-    
-    case class Mode(
-      expectTypeErrors: Bool = false,
-      expectWarnings: Bool = false,
-      expectParseErrors: Bool = false,
-      fixme: Bool = false,
-      showParse: Bool = false,
-      verbose: Bool = false,
-      noSimplification: Bool = false,
-      explainErrors: Bool = false,
-      dbg: Bool = false,
-      dbgParsing: Bool = false,
-      dbgSimplif: Bool = false,
-      fullExceptionStack: Bool = false,
-      stats: Bool = false,
-      stdout: Bool = false,
-      noExecution: Bool = false,
-      debugVariance: Bool = false,
-      unify: Bool = true,  // unify is on by default
-      unifyDbg: Bool = false,
-      tex: Bool = false,
-    ) extends ModeType {
-      def isDebugging: Bool = dbg || dbgSimplif
-    }
+
     val defaultMode = Mode()
     
-    var parseOnly = basePath.headOption.contains("parser") || basePath.headOption.contains("compiler")
-    var allowTypeErrors = false
-    var allowParseErrors = false // TODO use
-    var showRelativeLineNums = false
-    // Parse and check the file with ocaml syntax and semantic rules
-    var ocamlMode = false
-    // load type definitions of ocaml standard library constructs
-    var ocamlLoadLibrary = false
-    var noProvs = false
-    var allowRuntimeErrors = false
-
-    /** Load type definitions and function definitions from a file into ctx
-      * and declared definitions. This is useful for loading ocaml standard
-      * library definitions
-      */
-    def loadLibrary(file: Path, typer: Typer): (typer.Ctx, Map[Str, typer.PolymorphicType]) = {
-      val fileContents = os.read(file)
-      val allLines = fileContents.splitSane('\n').toIndexedSeq
-      val block = OcamlParser.libraryTopLevelSeparators(allLines).mkString("\n")
-      val fph = new FastParseHelpers(block)
-      val globalStartLineNum = 0
-      parse(block, p => new OcamlParser(Origin("builtin", globalStartLineNum, fph)).pgrm(p)
-        , verboseFailures = true) match {
-        case Failure(lbl, index, extra) =>
-          val (lineNum, lineStr, col) = fph.getLineColAt(index)
-          val globalLineNum = allLines.size + lineNum
-          output("/!\\ Parse error: " + extra.trace().msg +
-            s" at l.$globalLineNum:$col: $lineStr")
-          output("Failed to parse library")
-          (typer.Ctx.init, Map.empty)
-        case Success(prog, index) => {
-          val (typeDefs, stmts) = prog.desugared
-          var ctx = typer.Ctx.init
-          val raise: typer.Raise = d => ()
-          var declared: Map[Str, typer.PolymorphicType] = Map.empty
-          
-          ctx = typer.processTypeDefs(typeDefs)(ctx, raise)
-          val curBlockTypeDefs = ctx.tyDefs.iterator.map(_._2).toList
-          typer.computeVariances(curBlockTypeDefs, ctx)
-          
-          stmts.foreach {
-            // statement only declares a new term with its type
-            // but does not give a body/definition to it
-            case Def(_, nme, R(PolyType(tps, rhs)), _) =>
-              val ty_sch = typer.PolymorphicType(0,
-                typer.typeType(rhs)(ctx.nextLevel, raise,
-                  vars = tps.map(tp => tp.name -> typer.freshVar(typer.noProv/*FIXME*/)(1)).toMap))
-              ctx += nme.name -> typer.VarSymbol(ty_sch, nme)
-              declared += nme.name -> ty_sch
-
-            // statement is defined and has a body/definition
-            case d @ Def(isrec, nme, L(rhs), _) =>
-              val ty_sch = typer.typeLetRhs(isrec, nme, rhs)(ctx, raise)
-              // statement does not have a declared type for the body
-              // the inferred type must be used and stored for lookup
-              declared.get(nme.name) match {
-                // statement has a body but it's type was not declared
-                // infer it's type and store it for lookup and type gen
-                case N =>
-                  ctx += nme.name -> typer.VarSymbol(ty_sch, nme)
-
-                // statement has a body and a declared type
-                // both are used to compute a subsumption (What is this??)
-                // the inferred type is used to for ts type gen
-                case S(sign) =>
-                  ctx += nme.name -> typer.VarSymbol(sign, nme)
-                  typer.uniState.subsume(ty_sch, sign)(ctx, raise, typer.TypeProvenance(d.toLoc, "def definition"))
-              }
-
-            case _ => ()
-          }
-          (ctx, declared)
-        }
-      }
-    }
+    var parseOnly = isParseOnly(basePath)
 
     def rec(lines: List[String], mode: Mode): Unit = lines match {
       case "" :: Nil =>
       case line :: ls if line.startsWith(":") =>
         out.println(line)
-        val newMode = line.tail.takeWhile(!_.isWhitespace) match {
-          case "e" => mode.copy(expectTypeErrors = true)
-          case "w" => mode.copy(expectWarnings = true)
-          case "pe" => mode.copy(expectParseErrors = true)
-          case "p" => mode.copy(showParse = true)
-          case "d" => mode.copy(dbg = true)
-          case "dp" => mode.copy(dbgParsing = true)
-          case "ds" => mode.copy(dbgSimplif = true)
-          case "s" => mode.copy(fullExceptionStack = true)
-          case "v" | "verbose" => mode.copy(verbose = true)
-          case "ex" | "explain" => mode.copy(expectTypeErrors = true, explainErrors = true)
-          case "ns" | "no-simpl" => mode.copy(noSimplification = true)
-          case "stats" => mode.copy(stats = true)
-          case "showres" => mode.copy(stdout = false)
-          case "ParseOnly" => parseOnly = true; mode
-          case "AllowTypeErrors" => allowTypeErrors = true; mode
-          case "AllowParseErrors" => allowParseErrors = true; mode
-          case "AllowRuntimeErrors" => allowRuntimeErrors = true; mode
-          case "ShowRelativeLineNums" => showRelativeLineNums = true; mode
-          case "NoProvs" => noProvs = true; mode
-          case "ne" => mode.copy(noExecution = true)
-          case "dv" => mode.copy(debugVariance = true)
-          // Parse and check the file with ocaml syntax and semantic rules
-          case "OcamlParser" => ocamlMode = true; mode
-          // don't load ocaml library in special cases
-          case "NoLibrary" =>
-            ocamlLoadLibrary = false
-            ctx = typer.Ctx.init
-            declared = Map.empty
-            mode
-          // load ocaml library definitions and use the updated context and declarations
-          case "OcamlLoadLibrary" =>
-            ocamlLoadLibrary = true
-            val (libCtx, libDeclared): (typer.Ctx, Map[Str, typer.PolymorphicType]) = loadLibrary(DiffTests.libPath, typer)
-            ctx = libCtx
-            declared = libDeclared
-            mode
-          // unify type bounds to find errors for HM style type system
-          case "unify" => mode.copy(unify = true)
-          case "unifyDbg" => mode.copy(unifyDbg = true, unify = true)
-          case "tex" => mode.copy(tex = true,
-              // stdout = true // * LP: seems `stdout` doesn't work for the errors (why?)
-            )
-          case _ =>
-            failures += allLines.size - lines.size
-            output("/!\\ Unrecognized option " + line)
-            mode
-        }
+        // process command line
+        val command = line.tail.takeWhile(!_.isWhitespace)
+        // check normal command actions setup in Mode Defaults
+        val newMode = modeActionMap.getOrElse(command, { _: Mode =>
+          //if none of them matched, check these cases
+          command match{
+            case "ParseOnly" => parseOnly = true; mode
+            case "AllowTypeErrors" => allowTypeErrors = true; mode
+            case "AllowParseErrors" => allowParseErrors = true; mode
+            case "AllowRuntimeErrors" => allowRuntimeErrors = true; mode
+            case "ShowRelativeLineNums" => showRelativeLineNums = true; mode
+            case "NoProvs" => noProvs = true; mode
+            // Parse and check the file with ocaml syntax and semantic rules
+            case "OcamlParser" => ocamlMode = true; mode
+            // don't load ocaml library in special cases
+            case "NoLibrary" =>
+              ocamlLoadLibrary = false
+              ctx = typer.Ctx.init
+              declared = Map.empty
+              mode
+            // load ocaml library definitions and use the updated context and declarations
+            case "OcamlLoadLibrary" =>
+              ocamlLoadLibrary = true
+              val (libCtx, libDeclared): (typer.Ctx, Map[Str, typer.PolymorphicType]) = loadLibrary(DiffTests.libPath, typer, output(_))
+              ctx = libCtx
+              declared = libDeclared
+              mode
+            case _ =>
+              failures += allLines.size - lines.size
+              output("/!\\ Unrecognized option " + line)
+              mode          }
+        })(mode)
+
+
         rec(ls, newMode)
       case line :: ls if line.startsWith("// FIXME") || line.startsWith("// TODO") =>
         out.println(line)
         rec(ls, mode.copy(fixme = true))
-      case line :: ls if line.startsWith(outputMarker) //|| line.startsWith(oldOutputMarker)
+      case line :: ls if line.startsWith(outputMarker)
         => rec(ls, defaultMode)
       case line :: ls if line.isEmpty =>
         out.println(line)
@@ -254,31 +137,13 @@ class DiffTests
       case line :: ls if line.startsWith("//") =>
         out.println(line)
         rec(ls, mode)
-      case line :: ls if line.startsWith(diffBegMarker) => // Check if there are unmerged git conflicts
-        val diff = ls.takeWhile(l => !l.startsWith(diffEndMarker))
-        assert(diff.exists(_.startsWith(diffMidMarker)), diff)
-        val rest = ls.drop(diff.length)
-        val hdo = rest.headOption
-        assert(hdo.exists(_.startsWith(diffEndMarker)), hdo)
-        val blankLines = diff.count(_.isEmpty)
-        val hasBlankLines = diff.exists(_.isEmpty)
-        if (diff.forall(l => l.startsWith(outputMarker) || l.startsWith(diffMidMarker) || l.startsWith(diff3MidMarker) || l.isEmpty)) {
-          for (_ <- 1 to blankLines) out.println()
-        } else {
-          unmergedChanges += allLines.size - lines.size + 1
-          out.println(diffBegMarker)
-          diff.foreach(out.println)
-          out.println(diffEndMarker)
-        }
-        rec(rest.tail, if (hasBlankLines) defaultMode else mode)
+
       // process block of text and show output - type, expressions, errors
       case l :: ls =>
         val blockLineNum = (allLines.size - lines.size) + 1
         
         val block = (l :: ls.takeWhile(l => l.nonEmpty && !(
           l.startsWith(outputMarker)
-          || l.startsWith(diffBegMarker)
-          // || l.startsWith(oldOutputMarker)
         ))).toIndexedSeq
         block.foreach(out.println)
         val processedBlock = OcamlParser.addTopLevelSeparators(block)
@@ -293,101 +158,11 @@ class DiffTests
         def report(diags: Ls[hmloc.Diagnostic], output: Str => Unit = reportOutput): Unit =
           if (mode.tex) reportBase(diags, str => output(fixTex(str))) else reportBase(diags, output)
 
-        def fixTex(output: Str): Str =
-          output
-            .replaceAll("╔══","")
-            .replaceAll("╟── this", "This")
-            .replaceAll("╟──", "")
-            .replaceAll("║  ", "  ")
-
-        def reportUniError(err: UniErrReport, output: Str => Unit): Unit = {
-          def outputMsg(info: (Message, Ls[Loc], Bool, Int, Bool), sctx: ShowCtx): Unit = {
-            val (msg, locs, dir, level, last) = info
-            val levelOffset = " " * (level * 2)
-            val msgPre = levelOffset ++ "◉ "
-            val msgStr = msgPre ++ msg.showIn(sctx)
-            output(msgStr)
-
-            locs.zipWithIndex.foreach { case (loc, idx) =>
-              var locPre = levelOffset ++ "│ "
-              var termLinePre = levelOffset ++ "│ "
-              if (last) locPre = levelOffset ++ "  "
-              if (last) termLinePre = levelOffset ++ "  "
-
-              val (startLineNum, _, startLineCol) = loc.origin.fph.getLineColAt(loc.spanStart)
-              val (endLineNum, _, endLineCol) = loc.origin.fph.getLineColAt(loc.spanEnd)
-              val lineNum = loc.origin.startLineNum + startLineNum - blockLineNum
-              val lineNumPad = 5
-              var lineNumStr = " " * lineNumPad // about the same space as if it had a 2 digit line number
-              val lineBullet = " - "
-              val truncateStr = " ..."
-
-              // single line location and markers
-              lineNumStr = if (loc.origin.fileName == "builtin") {
-                "lib.".padTo(lineNumPad, ' ')
-              } else {
-                s"l.$lineNum".padTo(lineNumPad, ' ')
-              }
-              val fstLine = loc.origin.fph.lines(startLineNum - 1)
-              if (!dir && idx == 0 && !last) termLinePre = levelOffset ++ "▲ "
-              val linePre = termLinePre ++ lineBullet ++ lineNumStr
-              output(linePre ++ fstLine)
-              val gap = " " * (lineBullet + lineNumStr).length
-              val offset = " " * (startLineCol - 1)
-
-              if (endLineNum == startLineNum) {
-                val markers = "^" * (endLineCol - startLineCol)
-                output(locPre ++ gap ++ offset ++ markers)
-              }
-              // multi line location print first two lines
-              // truncate if message runs past second line
-              else {
-                // markers for first line cover the line for multi line
-                var markers = "^" * (fstLine.length - startLineCol + 1)
-                output(locPre ++ gap ++ offset ++ markers)
-
-                val truncate = endLineNum > (startLineNum + 1)
-                var sndLine = loc.origin.fph.lines(startLineNum)
-                if (truncate) sndLine ++= truncateStr
-                val whitespace = sndLine.takeWhile(_ == ' ').length
-                val linePre = " " * (lineBullet.length + lineNumStr.length)
-                output(locPre ++ linePre ++ sndLine)
-
-                val space = " " * (linePre.length + whitespace)
-                markers = if (truncate) {
-                  "^" * (sndLine.length - whitespace)
-                } else {
-                  "^" * (endLineCol - whitespace)
-                }
-                output(locPre ++ space ++ markers)
-              }
-
-              if (dir && idx == locs.length - 1 && !last) locPre = levelOffset ++ "▼ "
-              if (idx == locs.length - 1 && !last) output(locPre)
-            }
-          }
-          val (mainMsg, seqStr, msgs, sctx, _, _) = UniErrReport.unapply(err).get
-
-          if (err.level == 0) {
-            val mainPre = "[ERROR] "
-            output(s"$mainPre${mainMsg.showIn(sctx)}")
-            if (seqStr.nonEmpty) {
-              output("")
-              output(" " * mainPre.length ++ seqStr)
-            }
-            output("")
-          }
-
-          msgs.zipWithIndex.foreach{
-            case (L(msg), i) => outputMsg(msg, sctx)
-            case (R(report), _) => reportUniError(report, output)
-          }
-        }
 
         // report errors and warnings
         def reportBase(diags: Ls[hmloc.Diagnostic], output: Str => Unit): Unit = {
           diags.foreach {
-            case report: UniErrReport => reportUniError(report, output)
+            case report: UniErrReport => reportUniError(report, output, blockLineNum)
             case diag =>
             var unificationRelativeLineNums = false
             val sctx = Message.mkCtx(diag.allMsgs.iterator.map(_._1), "?")
@@ -396,20 +171,20 @@ class DiffTests
                 src match {
                   case Diagnostic.Lexing =>
                     totalParseErrors += 1
-                    s"╔══[LEXICAL ERROR] "
+                    lexicalErrorText
                   case Diagnostic.Parsing =>
                     totalParseErrors += 1
-                    s"╔══[PARSE ERROR] "
+                    parseErrorText
                   case _ => // TODO customize too
                     totalTypeErrors += 1
-                    s"╔══[ERROR] "
+                    basicErrorText
                 }
               case _: UnificationReport =>
                 totalTypeErrors += 1
-                s"╔══[ERROR] "
+                basicErrorText
               case WarningReport(msg, loco, _) =>
                 totalWarnings += 1
-                s"╔══[WARNING] "
+                warningText
             }
             val seqStr = diag match {
               case UnificationReport(_, _, seqStr, _) =>
@@ -516,7 +291,7 @@ class DiffTests
               }
             }
             if (diag.allMsgs.isEmpty) output("╙──")
-            
+
             if (!mode.fixme) {
               if (!allowTypeErrors
                   && !mode.expectTypeErrors && diag.isInstanceOf[ErrorReport] && diag.source =:= Diagnostic.Typing)
@@ -528,11 +303,11 @@ class DiffTests
                   && !mode.expectWarnings && diag.isInstanceOf[WarningReport])
                 failures += globalLineNum
             }
-            
+
             ()
           }
         }
-        
+
         val raise: typer.Raise = d => report(d :: Nil)
 
         try {
@@ -779,7 +554,7 @@ class DiffTests
 
     // load ocaml library by default
     ocamlLoadLibrary = true
-    val (libCtx, libDeclared): (typer.Ctx, Map[Str, typer.PolymorphicType]) = loadLibrary(DiffTests.libPath, typer)
+    val (libCtx, libDeclared): (typer.Ctx, Map[Str, typer.PolymorphicType]) = loadLibrary(DiffTests.libPath, typer, output(_))
     ctx = libCtx
     declared = libDeclared
 
