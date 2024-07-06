@@ -39,12 +39,6 @@ class DiffTests
     @annotation.nowarn("msg=method stop in class Thread is deprecated") def apply(testThread: Thread): Unit = {
       println(s"!! Test at $testThread has run out out time !! stopping..." +
         "\n\tNote: you can increase this limit by changing DiffTests.TimeLimit")
-      // * Thread.stop() is considered bad practice because normally it's better to implement proper logic
-      // * to terminate threads gracefully, avoiding leaving applications in a bad state.
-      // * But here we DGAF since all the test is doing is runnign a type checker and some Node REPL,
-      // * which would be a much bigger pain to make receptive to "gentle" interruption.
-      // * It would feel extremely wrong to intersperse the pure type checker algorithms
-      // * with ugly `Thread.isInterrupted` checks everywhere...
       testThread.stop()
     }
   }
@@ -561,28 +555,8 @@ class DiffTests
     try rec(allLines, defaultMode) finally {
       out.close()
     }
-    val testFailed = failures.nonEmpty || unmergedChanges.nonEmpty
-    val result = strw.toString
-    val endTime = System.nanoTime()
-    val timeStr = (((endTime - beginTime) / 1000 / 100).toDouble / 10.0).toString
-    val testColor = if (testFailed) Console.RED else Console.GREEN
-    
-    val resStr = s"${" " * (35 - testStr.length)}$testColor${
-      " " * (6 - timeStr.length)}$timeStr  ms${Console.RESET}"
-    
-    if (inParallel) println(s"${Console.CYAN}Processed${Console.RESET}  $testStr$resStr")
-    else println(resStr)
-    
-    if (result =/= fileContents) {
-      println(s"! Updated $file")
-      os.write.over(file, result)
-    }
-    
-    if (testFailed)
-      if (unmergedChanges.nonEmpty)
-        fail(s"Unmerged non-output changes around: " + unmergedChanges.map("l."+_).mkString(", "))
-      else fail(s"Unexpected diagnostics (or lack thereof) at: " + failures.map("l."+_).mkString(", "))
-    
+    checkTestResults(failures, unmergedChanges, beginTime, strw.toString, testStr,
+      inParallel,file, fileContents, fail(_))
   }}
 }
 

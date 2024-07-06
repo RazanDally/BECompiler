@@ -6,6 +6,7 @@ import fastparse.Parsed.Success
 
 import scala.collection.mutable
 import scala.collection.mutable.{Map => MutMap}
+import scala.collection.mutable.Buffer
 import hmloc.utils._
 import shorthands._
 import org.scalatest.{ParallelTestExecution, funsuite}
@@ -205,6 +206,34 @@ object TestHelpersFuncs{
       case (R(report), _) => reportUniError(report, output, blockLineNum)
     }
   }
+
+
+def checkTestResults(failures: Buffer[Int], unmergedChanges: Buffer[Int], beginTime: Long, strw: String, testStr: String,
+                     inParallel: Boolean, file: Path, fileContents: String, fail: (String) => Unit): Unit = {
+
+  val testFailed = failures.nonEmpty || unmergedChanges.nonEmpty
+  val result = strw
+  val endTime = System.nanoTime()
+  val timeStr = (((endTime - beginTime) / 1000 / 100).toDouble / 10.0).toString
+  val testColor = if (testFailed) Console.RED else Console.GREEN
+
+  val resStr = s"${" " * (35 - testStr.length)}$testColor${
+    " " * (6 - timeStr.length)}$timeStr  ms${Console.RESET}"
+
+  if (inParallel) println(s"${Console.CYAN}Processed${Console.RESET}  $testStr$resStr")
+  else println(resStr)
+
+  if (result =/= fileContents) {
+    println(s"! Updated $file")
+    os.write.over(file, result)
+  }
+
+  if (testFailed)
+    if (unmergedChanges.nonEmpty)
+      fail(s"Unmerged non-output changes around: " + unmergedChanges.map("l."+_).mkString(", "))
+    else fail(s"Unexpected diagnostics (or lack thereof) at: " + failures.map("l."+_).mkString(", "))
+
+}
 
 
 
