@@ -14,8 +14,8 @@ import org.scalatest.concurrent.{Signaler, TimeLimitedTests}
 import os.Path
 
 import ModeDefaults._
-import TestHelpersFuncs._
-import TestHelpersConsts._
+import TestHelperFuncs._
+import TestHelperConsts._
 
 class BEC
   extends funsuite.AnyFunSuite
@@ -112,7 +112,7 @@ class BEC
         var totalWarnings = 0
 
         def report(diags: Ls[hmloc.Diagnostic], output: Str => Unit = reportOutput): Unit =
-          if (mode.tex) reportBase(diags, str => output(fixTex(str))) else reportBase(diags, output)
+          if (mode.tex) reportBase(diags, str => output(fixText(str))) else reportBase(diags, output)
 
 
         // report errors and warnings
@@ -148,7 +148,7 @@ class BEC
                 seqStr
               case _ => false
             }
-            val prepre = "║  "
+
             val lastMsgNum = diag.allMsgs.size - 1
             var globalLineNum = blockLineNum  // solely used for reporting useful test failure messages
             val tex = mode.tex

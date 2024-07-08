@@ -14,8 +14,8 @@ import org.scalatest.concurrent.{Signaler, TimeLimitedTests}
 import os.Path
 
 import ModeDefaults._
-import TestHelpersFuncs._
-import TestHelpersConsts._
+import TestHelperFuncs._
+import TestHelperConsts._
 
 class DiffTests
   extends funsuite.AnyFunSuite
@@ -49,14 +49,14 @@ class DiffTests
         test(testName) {
 
     val testStr = getTestStr(basePath, file)
-    
+
     if (!inParallel) print(s"Processing $testStr")
-    
+
     // * For some reason, the color is sometimes wiped out when the line is later updated not in iTerm3:
     // if (!inParallel) print(s"${Console.CYAN}Processing${Console.RESET} $testStr ... ")
-    
+
     val beginTime = System.nanoTime()
-    
+
     val fileContents = os.read(file)
     val allLines = fileContents.splitSane('\n').toList
     val strw = new java.io.StringWriter
@@ -78,7 +78,7 @@ class DiffTests
     val unmergedChanges = mutable.Buffer.empty[Int]
 
     val defaultMode = Mode()
-    
+
     var parseOnly = isParseOnly(basePath)
 
     def rec(lines: List[String], mode: Mode): Unit = lines match {
@@ -135,7 +135,7 @@ class DiffTests
       // process block of text and show output - type, expressions, errors
       case l :: ls =>
         val blockLineNum = (allLines.size - lines.size) + 1
-        
+
         val block = (l :: ls.takeWhile(l => l.nonEmpty && !(
           l.startsWith(outputMarker)
         ))).toIndexedSeq
@@ -150,7 +150,7 @@ class DiffTests
         var totalWarnings = 0
 
         def report(diags: Ls[hmloc.Diagnostic], output: Str => Unit = reportOutput): Unit =
-          if (mode.tex) reportBase(diags, str => output(fixTex(str))) else reportBase(diags, output)
+          if (mode.tex) reportBase(diags, str => output(fixText(str))) else reportBase(diags, output)
 
 
         // report errors and warnings
@@ -186,7 +186,7 @@ class DiffTests
                 seqStr
               case _ => false
             }
-            val prepre = "║  "
+
             val lastMsgNum = diag.allMsgs.size - 1
             var globalLineNum = blockLineNum  // solely used for reporting useful test failure messages
             val tex = mode.tex
@@ -571,7 +571,7 @@ object DiffTests {
   private val libPath = dir/"ocaml"/"OcamlLibrary.mls"
 
   private val allFiles = os.walk(dir).filter(_.toIO.isFile)
-  
+
   private val validExt = Set("ml", "mls")
   
   // Aggregate unstaged modified files to only run the tests on them, if there are any

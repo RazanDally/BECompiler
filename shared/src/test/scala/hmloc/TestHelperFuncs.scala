@@ -14,16 +14,9 @@ import org.scalatest.time._
 import org.scalatest.concurrent.{Signaler, TimeLimitedTests}
 import os.Path
 
+import TestHelperConsts._
 
-object TestHelpersConsts{
-  val outputMarker = "//│ "
-  val lexicalErrorText = s"╔══[LEXICAL ERROR] "
-  val parseErrorText = s"╔══[PARSE ERROR] "
-  val basicErrorText = s"╔══[ERROR] "
-  val warningText = s"╔══[WARNING] "
-
-}
-object TestHelpersFuncs{
+object TestHelperFuncs{
 
   /**
    * Get the test string for a test
@@ -113,14 +106,25 @@ object TestHelpersFuncs{
     }
   }
 
-
-  def fixTex(output: Str): Str =
+  /**
+   * Fix the text output and remove the ascii art
+   * @param output the output string
+   * @return the fixed string
+   */
+  def fixText(output: Str): Str =
     output
       .replaceAll("╔══","")
       .replaceAll("╟── this", "This")
       .replaceAll("╟──", "")
       .replaceAll("║  ", "  ")
 
+  /**
+   * Output a message
+   * @param info the message info
+   * @param sctx the show context
+   * @param output the output function
+   * @param blockLineNum the block line number
+   */
   def outputMsg(info: (Message, Ls[Loc], Bool, Int, Bool), sctx: ShowCtx,
                 output: Str => Unit, blockLineNum: Int ): Unit = {
     val (msg, locs, dir, level, last) = info
@@ -188,6 +192,12 @@ object TestHelpersFuncs{
     }
   }
 
+  /**
+   * Report a uni error
+   * @param err the error report
+   * @param output the output function
+   * @param blockLineNum the block line number
+   */
   def reportUniError(err: UniErrReport, output: Str => Unit, blockLineNum: Int): Unit = {
     val (mainMsg, seqStr, msgs, sctx, _, _) = UniErrReport.unapply(err).get
 
@@ -208,32 +218,44 @@ object TestHelpersFuncs{
   }
 
 
-def checkTestResults(failures: Buffer[Int], unmergedChanges: Buffer[Int], beginTime: Long, strw: String, testStr: String,
-                     inParallel: Boolean, file: Path, fileContents: String, fail: (String) => Unit): Unit = {
+  /**
+   * Check the test results
+   * @param failures the failures
+   * @param unmergedChanges the unmerged changes
+   * @param beginTime the begin time
+   * @param strw the results
+   * @param testStr the test string
+   * @param inParallel if the test is in parallel
+   * @param file the file path
+   * @param fileContents the file contents
+   * @param fail the fail function
+   */
+  def checkTestResults(failures: Buffer[Int], unmergedChanges: Buffer[Int], beginTime: Long, strw: String, testStr: String,
+                       inParallel: Boolean, file: Path, fileContents: String, fail: (String) => Unit): Unit = {
 
-  val testFailed = failures.nonEmpty || unmergedChanges.nonEmpty
-  val result = strw
-  val endTime = System.nanoTime()
-  val timeStr = (((endTime - beginTime) / 1000 / 100).toDouble / 10.0).toString
-  val testColor = if (testFailed) Console.RED else Console.GREEN
+    val testFailed = failures.nonEmpty || unmergedChanges.nonEmpty
+    val result = strw
+    val endTime = System.nanoTime()
+    val timeStr = (((endTime - beginTime) / 1000 / 100).toDouble / 10.0).toString
+    val testColor = if (testFailed) Console.RED else Console.GREEN
 
-  val resStr = s"${" " * (35 - testStr.length)}$testColor${
-    " " * (6 - timeStr.length)}$timeStr  ms${Console.RESET}"
+    val resStr = s"${" " * (35 - testStr.length)}$testColor${
+      " " * (6 - timeStr.length)}$timeStr  ms${Console.RESET}"
 
-  if (inParallel) println(s"${Console.CYAN}Processed${Console.RESET}  $testStr$resStr")
-  else println(resStr)
+    if (inParallel) println(s"${Console.CYAN}Processed${Console.RESET}  $testStr$resStr")
+    else println(resStr)
 
-  if (result =/= fileContents) {
-    println(s"! Updated $file")
-    os.write.over(file, result)
+    if (result =/= fileContents) {
+      println(s"! Updated $file")
+      os.write.over(file, result)
+    }
+
+    if (testFailed)
+      if (unmergedChanges.nonEmpty)
+        fail(s"Unmerged non-output changes around: " + unmergedChanges.map("l."+_).mkString(", "))
+      else fail(s"Unexpected diagnostics (or lack thereof) at: " + failures.map("l."+_).mkString(", "))
+
   }
-
-  if (testFailed)
-    if (unmergedChanges.nonEmpty)
-      fail(s"Unmerged non-output changes around: " + unmergedChanges.map("l."+_).mkString(", "))
-    else fail(s"Unexpected diagnostics (or lack thereof) at: " + failures.map("l."+_).mkString(", "))
-
-}
 
 
 
