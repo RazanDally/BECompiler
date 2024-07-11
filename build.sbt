@@ -9,7 +9,7 @@ lazy val root = project.in(file(".")).settings(
   name := "hmloc",
   version := "0.1",
   scalaVersion := "2.13.6",
-  mainClass in Compile := Some("MainApp"),
+  Compile / mainClass := Some("hmloc.MainApp"),
   scalacOptions ++= Seq(
     "-deprecation",
     "-feature",
