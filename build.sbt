@@ -7,6 +7,9 @@ ThisBuild / organizationName := "LPTK"
 
 lazy val root = project.in(file(".")).settings(
   name := "hmloc",
+  version := "0.1",
+  scalaVersion := "2.13.6",
+  mainClass in Compile := Some("MainApp"),
   scalacOptions ++= Seq(
     "-deprecation",
     "-feature",
@@ -32,13 +35,11 @@ lazy val root = project.in(file(".")).settings(
   libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.3.0",
   libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.3",
   libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.8.0",
-  libraryDependencies += guice,
-  libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test,
 
   //
   watchSources += WatchSource(
-    sourceDirectory.value.getParentFile.getParentFile/"app/shared/src/test/diff", "*.ml", NothingFilter),
+    sourceDirectory.value.getParentFile.getParentFile/"src/test/diff", "*.ml", NothingFilter),
   watchSources += WatchSource(
-    sourceDirectory.value.getParentFile.getParentFile/"app/shared/src/test/diff", "*.mls", NothingFilter),
+    sourceDirectory.value.getParentFile.getParentFile/"src/test/diff", "*.mls", NothingFilter),
   Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oC"),
-).enablePlugins(PlayScala)
+)

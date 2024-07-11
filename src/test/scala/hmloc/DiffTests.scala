@@ -567,7 +567,7 @@ object DiffTests {
     else Span(10000, Seconds)
   
   private val pwd = os.pwd
-  private val dir = pwd/"shared"/"src"/"test"/"diff"
+  private val dir = pwd/"src"/"test"/"diff"
   private val libPath = dir/"ocaml"/"OcamlLibrary.mls"
 
   private val allFiles = os.walk(dir).filter(_.toIO.isFile)
