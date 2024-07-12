@@ -1,9 +1,15 @@
 import Wart._
 
+lazy val akkaVersion = "2.9.3"
+lazy val akkaHttpVersion = "10.6.3"
+
+resolvers += "Akka library repository".at("https://repo.akka.io/maven")
+
 ThisBuild / scalaVersion     := "2.13.9"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "io.lptk"
 ThisBuild / organizationName := "LPTK"
+
 
 lazy val root = project.in(file(".")).settings(
   name := "hmloc",
@@ -35,6 +41,13 @@ lazy val root = project.in(file(".")).settings(
   libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.3.0",
   libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.3",
   libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.8.0",
+  libraryDependencies ++= Seq(
+    "com.typesafe.akka" %% "akka-http"                % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json"     % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-actor-typed"         % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream"              % akkaVersion,
+    "ch.qos.logback"    % "logback-classic"           % "1.2.11",
+  ),
 
   //
   watchSources += WatchSource(

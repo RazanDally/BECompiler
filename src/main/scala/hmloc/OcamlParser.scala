@@ -11,7 +11,7 @@ import scala.util.chaining._
 @SuppressWarnings(Array("org.wartremover.warts.All"))
 class OcamlParser(origin: Origin, indent: Int = 0, recordLocations: Bool = true) {
   import OcamlParser.whitespace
-  
+
   val keywords = Set(
     "def", "class", "trait", "type", "method", "mut",
     "let", "rec", "in", "fun", "with", "undefined", "null",

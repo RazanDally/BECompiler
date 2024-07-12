@@ -1,4 +1,4 @@
-package hmloc
+package hmloc.utils
 
 import fastparse._
 import fastparse.Parsed.Failure
@@ -6,13 +6,8 @@ import fastparse.Parsed.Success
 
 import scala.collection.mutable
 import scala.collection.mutable.{Map => MutMap}
-import hmloc.utils._
 import shorthands._
-import org.scalatest.{ParallelTestExecution, funsuite}
-import org.scalatest.time._
-import org.scalatest.concurrent.{Signaler, TimeLimitedTests}
 import os.Path
-
 
 abstract class ModeType {
   def expectTypeErrors: Bool
