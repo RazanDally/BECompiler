@@ -25,7 +25,7 @@ object MainApp {
       pathPrefix("runTest") {
         path(IntNumber) { number =>
           get {
-            val output = runTestFile(number)
+            val output = runTestFileSurveyHard(number)
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<code><pre> $output </pre></code>"))
           }
         } ~

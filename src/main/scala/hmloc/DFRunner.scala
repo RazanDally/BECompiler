@@ -25,18 +25,17 @@ object DFRunner{
 
   private val validExt = Set("ml", "mls")
 
-  def runTestFile(fileNumber: Int): String = {
+  def runTestFileSurveyHard(fileNumber: Int): String = {
     val files: Path = allFiles.filter { file =>
       validExt(file.ext) && file.toString.contains("SurveyHard") &&
         file.toString.contains(fileNumber.toString)
     }.take(1).head
-    runAllFiles(files)
+    runFile(files)
   }
 
-  def runGivenPath(filePath: Path): String = runAllFiles(filePath, true)
+  def runGivenPath(filePath: Path): String = runFile(filePath, true)
 
-
-  def runAllFiles(filePath: Path, allowParse: Boolean = false): String = {
+  def runFile(filePath: Path, nonTest: Boolean = false): String = {
     val file: Path = filePath
     var result = ""
     // check that file exists
@@ -54,10 +53,6 @@ object DFRunner{
     }
 
     val allLines = fileContents.split(separator).toList
-
-    println(s"Using ${separator} as separator")
-    println(s"and allLines.size: ${allLines.size}")
-
 
     val strw = new java.io.StringWriter
     val out = new java.io.PrintWriter(strw) {
@@ -262,9 +257,11 @@ object DFRunner{
             val globalLineNum = (allLines.size - lines.size) + lineNum
             if (!mode.expectParseErrors && !mode.fixme)
               failures += globalLineNum
-            // dont output parse errors, we dont care here, only use for dataflow type errors
-//            output("/!\\ Parse error: " + extra.trace().msg +
-//              s" at l.$globalLineNum:$col: $lineStr")
+
+            // dont output parse errors in non test modes, we dont care there, only use for dataflow type errors
+           if(!nonTest)
+              output("/!\\ Parse error: " + extra.trace().msg +
+                s" at l.$globalLineNum:$col: $lineStr")
 
           // successfully parsed block into a valid syntactically valid program
           case Success(prog, _) =>
