@@ -56,19 +56,23 @@ class DiffTests
     // if (!inParallel) print(s"${Console.CYAN}Processing${Console.RESET} $testStr ... ")
 
     val beginTime = System.nanoTime()
-
+    var separator = "\r\n"
     val fileContents = os.read(file)
-    val allLines = fileContents.splitSane('\n').toList
+
+    if(!fileContents.contains('\r')){
+      separator = "\n"
+    }
+    val allLines = fileContents.split(separator).toList
     val strw = new java.io.StringWriter
     val out = new java.io.PrintWriter(strw) {
-      override def println(): Unit = print('\n') // to avoid inserting CRLF on Windows
+      override def println(): Unit = print(separator) // to avoid inserting CRLF on Windows
     }
     var stdout = false
     def output(str: String) =
       // out.println(outputMarker + str)
       if (stdout) System.out.println(str) else
-      str.splitSane('\n').foreach(l => out.println(outputMarker + l))
-    def reportOutput(str: String) = str.splitSane('\n').foreach(l => out.println(outputMarker + l))
+      str.split(separator).foreach(l => out.println(outputMarker + l))
+    def reportOutput(str: String) = str.split(separator).foreach(l => out.println(outputMarker + l))
     val typer = new Typer(dbg = false, verbose = false, explainErrors = false) {
       override def emitDbg(str: String): Unit = output(str)
     }

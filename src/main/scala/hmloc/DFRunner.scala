@@ -44,17 +44,28 @@ object DFRunner{
       return s"File $file does not exist"
     }
 
+    var separator = "\r\n"
+
     val testName = file.baseName
 
     val fileContents = os.read(file)
-    val allLines = fileContents.split("\r\n").toList
+    if(!fileContents.contains('\r')){
+      separator = "\n"
+    }
+
+    val allLines = fileContents.split(separator).toList
+
+    println(s"Using ${separator} as separator")
+    println(s"and allLines.size: ${allLines.size}")
+
+
     val strw = new java.io.StringWriter
     val out = new java.io.PrintWriter(strw) {
-      override def println(): Unit = print("\r\n") // to avoid inserting CRLF on Windows
+      override def println(): Unit = print(separator) // to avoid inserting CRLF on Windows
     }
     def output(str: String) =
-       str.split("\r\n").foreach(l => out.println(outputMarker + l))
-    def reportOutput(str: String) = str.split("\r\n").foreach(l => out.println(outputMarker + l))
+       str.split(separator).foreach(l => out.println(outputMarker + l))
+    def reportOutput(str: String) = str.split(separator).foreach(l => out.println(outputMarker + l))
     val typer = new Typer(dbg = false, verbose = false, explainErrors = false) {
       override def emitDbg(str: String): Unit = output(str)
     }
@@ -64,8 +75,6 @@ object DFRunner{
     val unmergedChanges = mutable.Buffer.empty[Int]
 
     val defaultMode = Mode()
-    allowParseErrors = allowParse
-
     def rec(lines: List[String], mode: Mode): Unit = lines match {
       case "" :: Nil =>
       case line :: ls if line.isEmpty =>
@@ -253,8 +262,9 @@ object DFRunner{
             val globalLineNum = (allLines.size - lines.size) + lineNum
             if (!mode.expectParseErrors && !mode.fixme)
               failures += globalLineNum
-            output("/!\\ Parse error: " + extra.trace().msg +
-              s" at l.$globalLineNum:$col: $lineStr")
+            // dont output parse errors, we dont care here, only use for dataflow type errors
+//            output("/!\\ Parse error: " + extra.trace().msg +
+//              s" at l.$globalLineNum:$col: $lineStr")
 
           // successfully parsed block into a valid syntactically valid program
           case Success(prog, _) =>
@@ -456,7 +466,7 @@ object DFRunner{
                 if (mode.fullExceptionStack) Int.MaxValue
                 else if (mode.fixme) 0
                 else 10
-              ).map("\r\n" + "\tat: " + _).mkString)
+              ).map(separator + "\tat: " + _).mkString)
         } finally {
           typer.dbg = false
           typer.verbose = false

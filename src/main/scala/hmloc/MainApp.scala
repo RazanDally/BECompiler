@@ -44,7 +44,7 @@ object MainApp {
 
             val output = runGivenPath(path)
             // run the test
-            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<code><pre> $output </pre></code>"))
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<code><pre style=\"text-wrap:pretty\"> $output </pre></code>"))
           }
         }
       }
