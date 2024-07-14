@@ -102,7 +102,7 @@ object DFRunner{
         // report errors and warnings
         def reportBase(diags: Ls[hmloc.Diagnostic], output: Str => Unit): Unit = {
           diags.foreach {
-            case report: UniErrReport => reportUniError(report, output, blockLineNum)
+            case report: UniErrReport => reportUniError(report, output, blockLineNum,true)
             case diag =>
               var unificationRelativeLineNums = false
               val sctx = Message.mkCtx(diag.allMsgs.iterator.map(_._1), "?")
@@ -111,20 +111,20 @@ object DFRunner{
                   src match {
                     case Diagnostic.Lexing =>
                       totalParseErrors += 1
-                      lexicalErrorText
+                      lexicalErrorTextWithTag
                     case Diagnostic.Parsing =>
                       totalParseErrors += 1
-                      parseErrorText
+                      parseErrorTextWithTag
                     case _ => // TODO customize too
                       totalTypeErrors += 1
-                      basicErrorText
+                      basicErrorTextWithTag
                   }
                 case _: UnificationReport =>
                   totalTypeErrors += 1
-                  basicErrorText
+                  basicErrorTextWithTag
                 case WarningReport(msg, loco, _) =>
                   totalWarnings += 1
-                  warningText
+                  warningTextWithTag
               }
               val seqStr = diag match {
                 case UnificationReport(_, _, seqStr, _) =>
@@ -259,7 +259,7 @@ object DFRunner{
 
             // dont output parse errors in non test modes, we dont care there, only use for dataflow type errors
            if(!nonTest)
-              output("/!\\ Parse error: " + extra.trace().msg +
+              output("/!\\ <span style=\"color:red\">Parse error</span>: " + extra.trace().msg +
                 s" at <button  class=\"line_number\">l.$globalLineNum:$col:</button> $lineStr")
 
           // successfully parsed block into a valid syntactically valid program
@@ -457,7 +457,7 @@ object DFRunner{
             if (!mode.fixme)
               failures += allLines.size - lines.size
             // err.printStackTrace(out)
-            output("/!!!\\ Uncaught error: " + err +
+            output("/!!!\\ <span style=\"color:red\">Uncaught error:</span> " + err +
               err.getStackTrace.take(
                 if (mode.fullExceptionStack) Int.MaxValue
                 else if (mode.fixme) 0

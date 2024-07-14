@@ -57,7 +57,7 @@ object TestHelperFuncs{
         val (lineNum, lineStr, col) = fph.getLineColAt(index)
         val globalLineNum = allLines.size + lineNum
         if(isServer){
-          output("/!\\ Parse error: " + extra.trace().msg +
+          output("/!\\ <span style=\"color:red\">Parse error:</span> " + extra.trace().msg +
             s" <button  class=\"line_number\">at l.$globalLineNum:$col:</button> $lineStr")
         }
         else {
@@ -207,11 +207,11 @@ object TestHelperFuncs{
    * @param output the output function
    * @param blockLineNum the block line number
    */
-  def reportUniError(err: UniErrReport, output: Str => Unit, blockLineNum: Int): Unit = {
+  def reportUniError(err: UniErrReport, output: Str => Unit, blockLineNum: Int, isServer:Boolean=false): Unit = {
     val (mainMsg, seqStr, msgs, sctx, _, _) = UniErrReport.unapply(err).get
 
     if (err.level == 0) {
-      val mainPre = "[ERROR] "
+      val mainPre = if(!isServer) "[ERROR] " else "<span style=\"color:red\">[ERROR]</span> "
       output(s"$mainPre${mainMsg.showIn(sctx)}")
       if (seqStr.nonEmpty) {
         output("")
