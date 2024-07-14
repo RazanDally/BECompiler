@@ -11,9 +11,103 @@ import akka.http.scaladsl.server.Route.seal
 import scala.util.Failure
 import scala.util.Success
 import hmloc.DFRunner._
+import hmloc.utils.TestHelperConsts._
 import os.Path
+
+import scala.math
 object MainApp {
 
+  /**
+   * check if the string contains a letter or digit character, by checking ascii of
+   * each character whether it is 0-9 a-z or A-Z
+   * @param str the string to check
+   * @return true if the string contains a letter or digit character
+   */
+    def containsLetterOrDigit(str: String): Boolean = {
+      str.exists(c => c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+    }
+
+  /**
+   * a function that colors the text underlined by Carets (by setting span tags)
+   * @param output the output to color
+   * @return the colored output
+   */
+  def colorCarets(output: String): String = {
+    val lines = if (output.contains("\r")) output.split("\n") else output.split("\n")
+    var listOfNewLines:List[String] = List()
+
+    var lastWasCaret = false
+    var i = 0
+    while (i  < lines.length - 1) {
+      val topLineList: List[Char] = lines(i).toList
+      val bottomLineList: List[Char] = lines(i + 1).toList
+
+      //if bottom line does not includes any numbers or letter, the we can go, and includes carets, then we can go
+      if (!containsLetterOrDigit(bottomLineList.mkString) && bottomLineList.contains('^')
+        && lines(i + 1).startsWith(outputMarker)) {
+        //advance the loop by an extra line as we are going to add the carets
+        i += 1
+
+        lastWasCaret = true
+        var newTopLine = ""
+        var newBottomLine = ""
+        var inCaret = false
+        val minLength = math.min(topLineList.length, bottomLineList.length)
+        for (j <- 0 until minLength) {
+          if (!inCaret && bottomLineList(j) == '^') {
+            inCaret = true
+            newTopLine += "<span class=\"caret_underlined\">"
+            newBottomLine += "<span class=\"carets\">"
+          }
+          newTopLine += topLineList(j)
+          newBottomLine += bottomLineList(j)
+
+          if (inCaret && bottomLineList(j) != '^') {
+            inCaret = false
+            newTopLine += "</span>"
+            newBottomLine += "</span>"
+          }
+        }
+        if (inCaret) {
+          newTopLine += "</span>"
+          newBottomLine += "</span>"
+        }
+        //if the top line is longer than the bottom line, then we need to add the rest of the top line
+        if (topLineList.length > bottomLineList.length) {
+          for (j <- bottomLineList.length until topLineList.length) {
+            newTopLine += topLineList(j)
+          }
+        }
+        //if the bottom line is longer than the top line, then we need to add the rest of the bottom line
+        if (bottomLineList.length > topLineList.length) {
+          for (j <- topLineList.length until bottomLineList.length) {
+            newBottomLine += bottomLineList(j)
+          }
+        }
+
+        //add the new lines to the list
+        listOfNewLines = listOfNewLines.appended(newTopLine)
+        listOfNewLines = listOfNewLines.appended(newBottomLine)
+      }
+      else
+      {
+        lastWasCaret = false
+        var newList: List[String] = List().appendedAll(listOfNewLines).appended(lines(i))
+        listOfNewLines = newList
+
+      }
+      //advance the loop
+      i += 1
+    }
+
+    //if the last line was not a caret, then we need to add it to the list, as we wouldve skipped it
+    if(!lastWasCaret) {
+      listOfNewLines = listOfNewLines.appended(lines(i))
+    }
+
+    //return all lines with \n between them
+    listOfNewLines.mkString("\n")
+  }
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem(Behaviors.empty, "my-system")
@@ -42,7 +136,8 @@ object MainApp {
             //change $ in mypath to / in path
             val path = os.Path.apply(mypath.replace('$', '/'))
 
-            val output = runGivenPath(path)
+            val output = colorCarets(runGivenPath(path))
+
             // run the test
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<code><pre style=\"text-wrap:pretty\"> $output </pre></code>"))
           }
