@@ -44,7 +44,8 @@ object TestHelperFuncs{
    * and declared definitions. This is useful for loading ocaml standard
    * library definitions
    */
-  def loadLibrary(file: Path, typer: Typer, output: (String) => Any): (typer.Ctx, Map[Str, typer.PolymorphicType]) = {
+  def loadLibrary(file: Path, typer: Typer, output: (String) => Any,
+                  isServer:Boolean =  false): (typer.Ctx, Map[Str, typer.PolymorphicType]) = {
     val fileContents = os.read(file)
     val allLines = fileContents.splitSane('\n').toIndexedSeq
     val block = OcamlParser.libraryTopLevelSeparators(allLines).mkString("\n")
@@ -55,8 +56,14 @@ object TestHelperFuncs{
       case Failure(lbl, index, extra) =>
         val (lineNum, lineStr, col) = fph.getLineColAt(index)
         val globalLineNum = allLines.size + lineNum
-        output("/!\\ Parse error: " + extra.trace().msg +
-          s" at l.$globalLineNum:$col: $lineStr")
+        if(isServer){
+          output("/!\\ Parse error: " + extra.trace().msg +
+            s" <button  class=\"line_number\">at l.$globalLineNum:$col:</button> $lineStr")
+        }
+        else {
+          output("/!\\ Parse error: " + extra.trace().msg +
+            s"at l.$globalLineNum:$col: $lineStr")
+        }
         output("Failed to parse library")
         (typer.Ctx.init, Map.empty)
       case Success(prog, index) => {
@@ -125,7 +132,7 @@ object TestHelperFuncs{
    * @param blockLineNum the block line number
    */
   def outputMsg(info: (Message, Ls[Loc], Bool, Int, Bool), sctx: ShowCtx,
-                output: Str => Unit, blockLineNum: Int ): Unit = {
+                output: Str => Unit, blockLineNum: Int, isServer:Boolean = false ): Unit = {
     val (msg, locs, dir, level, last) = info
     val levelOffset = " " * (level * 2)
     val msgPre = levelOffset ++ "◉ "
@@ -150,7 +157,10 @@ object TestHelperFuncs{
       lineNumStr = if (loc.origin.fileName == "builtin") {
         "lib.".padTo(lineNumPad, ' ')
       } else {
-        s"l.$lineNum".padTo(lineNumPad, ' ')
+        if(isServer)
+          s"<button  class=\"line_number\">l.$lineNum</button>".padTo(lineNumPad, ' ')
+        else
+          s"l.$lineNum".padTo(lineNumPad, ' ')
       }
       val fstLine = loc.origin.fph.lines(startLineNum - 1)
       if (!dir && idx == 0 && !last) termLinePre = levelOffset ++ "▲ "

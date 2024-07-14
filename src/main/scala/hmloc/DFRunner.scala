@@ -33,7 +33,7 @@ object DFRunner{
     runFile(files)
   }
 
-  def runGivenPath(filePath: Path): String = runFile(filePath, true)
+  def runGivenPath(filePath: Path): String = runFile(filePath)
 
   def runFile(filePath: Path, nonTest: Boolean = false): String = {
     val file: Path = filePath
@@ -163,14 +163,13 @@ object DFRunner{
                   var c = startLineCol
                   while (l <= endLineNum) {
                     val globalLineNum = loc.origin.startLineNum + l - 1
-                    val relativeLineNum = globalLineNum - blockLineNum + 1
+                    //we dont want to use relative line numbers here in general, just the actual lines
                     val lineNumber = {
                       if (loc.origin.fileName == "builtin") "builtin:"
                       else if (l == startLineNum) {
-                        val linemarker = "l."
-                        if (unificationRelativeLineNums || showRelativeLineNums && relativeLineNum > 0) s"$linemarker$relativeLineNum:"
-                        else s"$linemarker$globalLineNum:"
-                      } else "    " // about the same space as if it had line number
+                        val linemarker = "<button  class=\"line_number\">l."
+                         s"$linemarker$globalLineNum:</button>"
+                      } else "    </button>" // about the same space as if it had line number
                     }
                     if (tex) {
                       val curLine = loc.origin.fph.lines(l - 1)
@@ -261,7 +260,7 @@ object DFRunner{
             // dont output parse errors in non test modes, we dont care there, only use for dataflow type errors
            if(!nonTest)
               output("/!\\ Parse error: " + extra.trace().msg +
-                s" at l.$globalLineNum:$col: $lineStr")
+                s" at <button  class=\"line_number\">l.$globalLineNum:$col:</button> $lineStr")
 
           // successfully parsed block into a valid syntactically valid program
           case Success(prog, _) =>
