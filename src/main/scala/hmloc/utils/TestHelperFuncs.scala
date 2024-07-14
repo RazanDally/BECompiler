@@ -221,8 +221,8 @@ object TestHelperFuncs{
     }
 
     msgs.zipWithIndex.foreach{
-      case (L(msg), i) => outputMsg(msg, sctx, output, blockLineNum)
-      case (R(report), _) => reportUniError(report, output, blockLineNum)
+      case (L(msg), i) => outputMsg(msg, sctx, output, blockLineNum, isServer)
+      case (R(report), _) => reportUniError(report, output, blockLineNum, isServer)
     }
   }
 
