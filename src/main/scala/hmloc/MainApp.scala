@@ -33,7 +33,7 @@ object MainApp {
    * @return the colored output
    */
   def colorCarets(output: String): String = {
-    val lines = if (output.contains("\r")) output.split("\n") else output.split("\n")
+    val lines = output.split("\n")
     var listOfNewLines:List[String] = List()
 
     var lastWasCaret = false
@@ -45,8 +45,14 @@ object MainApp {
       //if bottom line does not includes any numbers or letter, the we can go, and includes carets, then we can go
       if (!containsLetterOrDigit(bottomLineList.mkString) && bottomLineList.contains('^')
         && lines(i + 1).startsWith(outputMarker)) {
+
+        //this is to fix the issue where ^ are one index to the right over the topLine
+        //this only happens when the top line includes a line number
+        var skipFirst = lines(i).contains("- l.")
+
         //advance the loop by an extra line as we are going to add the carets
         i += 1
+
 
         lastWasCaret = true
         var newTopLine = ""
@@ -60,7 +66,10 @@ object MainApp {
             newBottomLine += "<span class=\"carets\">"
           }
           newTopLine += topLineList(j)
-          newBottomLine += bottomLineList(j)
+          if(skipFirst && bottomLineList(j) == ' ') {
+            skipFirst = false
+          }
+          else newBottomLine += bottomLineList(j)
 
           if (inCaret && bottomLineList(j) != '^') {
             inCaret = false
@@ -109,6 +118,14 @@ object MainApp {
     listOfNewLines.mkString("\n")
   }
 
+  def addLineButtons(output:String) : String = {
+    //using regex, looks for sections that look like '- l.number' or l.number:number
+    // and change them to be surrounded by <button  class=\\\"line_number\\\"> and </button>
+    val lineNumRegex = """(-? l\.(\-)?\d+)|l\.(\-)?\d+:\d+""".r
+    val newOutput = lineNumRegex.replaceAllIn(output, m => s"<button  class=\\\"line_number\\\">${m.group(0)}</button>")
+    newOutput
+  }
+
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem(Behaviors.empty, "my-system")
     // needed for the future flatMap/onComplete in the end
@@ -136,7 +153,7 @@ object MainApp {
             //change $ in mypath to / in path
             val path = os.Path.apply(mypath.replace('$', '/'))
 
-            val output = colorCarets(runGivenPath(path))
+            val output = addLineButtons(colorCarets(runGivenPath(path)))
 
             // run the test
             complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"<code><pre style=\"text-wrap:pretty\"> $output </pre></code>"))
