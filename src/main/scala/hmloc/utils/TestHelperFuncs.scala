@@ -58,7 +58,7 @@ object TestHelperFuncs{
         val globalLineNum = allLines.size + lineNum
         if(isServer){
           output("/!\\ <span style=\"color:red\">Parse error:</span> " + extra.trace().msg +
-            s" <button  class=\"line_number\">at l.$globalLineNum:$col:</button> $lineStr")
+            s" at l.$globalLineNum:$col: $lineStr")
         }
         else {
           output("/!\\ Parse error: " + extra.trace().msg +
@@ -147,7 +147,10 @@ object TestHelperFuncs{
 
       val (startLineNum, _, startLineCol) = loc.origin.fph.getLineColAt(loc.spanStart)
       val (endLineNum, _, endLineCol) = loc.origin.fph.getLineColAt(loc.spanEnd)
-      val lineNum = loc.origin.startLineNum + startLineNum - blockLineNum
+      var lineNum = loc.origin.startLineNum + startLineNum - blockLineNum
+      if (isServer){
+        lineNum += blockLineNum - 1
+      }
       val lineNumPad = 5
       var lineNumStr = " " * lineNumPad // about the same space as if it had a 2 digit line number
       val lineBullet = " - "
@@ -157,9 +160,6 @@ object TestHelperFuncs{
       lineNumStr = if (loc.origin.fileName == "builtin") {
         "lib.".padTo(lineNumPad, ' ')
       } else {
-        if(isServer)
-          s"<button  class=\"line_number\">l.$lineNum</button>".padTo(lineNumPad, ' ')
-        else
           s"l.$lineNum".padTo(lineNumPad, ' ')
       }
       val fstLine = loc.origin.fph.lines(startLineNum - 1)

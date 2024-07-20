@@ -167,9 +167,9 @@ object DFRunner{
                     val lineNumber = {
                       if (loc.origin.fileName == "builtin") "builtin:"
                       else if (l == startLineNum) {
-                        val linemarker = "<button  class=\"line_number\">l."
-                         s"$linemarker$globalLineNum:</button>"
-                      } else "    </button>" // about the same space as if it had line number
+                        val linemarker = "l."
+                         s"$linemarker$globalLineNum:"
+                      } else "    " // about the same space as if it had line number
                     }
                     if (tex) {
                       val curLine = loc.origin.fph.lines(l - 1)
@@ -260,7 +260,7 @@ object DFRunner{
             // dont output parse errors in non test modes, we dont care there, only use for dataflow type errors
            if(!nonTest)
               output("/!\\ <span style=\"color:red\">Parse error</span>: " + extra.trace().msg +
-                s" at <button  class=\"line_number\">l.$globalLineNum:$col:</button> $lineStr")
+                s" at l.$globalLineNum:$col: $lineStr")
 
           // successfully parsed block into a valid syntactically valid program
           case Success(prog, _) =>
