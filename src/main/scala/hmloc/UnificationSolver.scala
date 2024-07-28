@@ -285,70 +285,109 @@ trait UnificationSolver extends TyperDatatypes {
       def constraintToMessage(c: Constraint, last: Bool = false): Ls[(Message, Ls[Loc], Bool, Int, Bool)] = {
         val (a, b) = Constraint.unapply(c).get
         val flow = c.dir
-        val locs = c.getCleanProvs.collect {
-          case TypeProvenance(S(loc), _, _, _) => loc
-        }
+        val locs = extractLocations(c)
 
-        // for the last constraint display both the types
-        // from the sequence of locations show the last one for b
         if (last) {
-          if (locs.isEmpty) {
-            throw new Exception("No locs for relation")
-          } else if (locs.length == 1) {
-             (msg(a), locs, flow, level, false) :: (msg(b), locs, flow, level, true) :: Nil
-          } else {
-            (msg(a), locs.init, flow, level, false) :: (msg(b), locs.last :: Nil, flow, level, true) :: Nil
-          }
+          handleLastConstraint(a, b, locs, flow)
         } else {
-          (msg(a), locs, flow, level, false) :: Nil
+          createMessage(a, locs, flow, level, isLast = false) :: Nil
         }
       }
+
+      def extractLocations(c: Constraint): Ls[Loc] = {
+        c.getCleanProvs.collect {
+          case TypeProvenance(S(loc), _, _, _) => loc
+        }
+      }
+
+      def handleLastConstraint(a: ST, b: ST, locs: Ls[Loc], flow: Bool): Ls[(Message, Ls[Loc], Bool, Int, Bool)] = {
+        if (locs.isEmpty) {
+          throw new Exception("No locs for relation")
+        } else if (locs.length == 1) {
+          createMessage(a, locs, flow, level, isLast = false) :: createMessage(b, locs, flow, level, isLast = true) :: Nil
+        } else {
+          createMessage(a, locs.init, flow, level, isLast = false) :: createMessage(b, locs.last :: Nil, flow, level, isLast = true) :: Nil
+        }
+      }
+
+      def createMessage(ty: ST, locs: Ls[Loc], flow: Bool, level: Int, isLast: Bool): (Message, Ls[Loc], Bool, Int, Bool) = {
+        (msg(ty), locs, flow, level, isLast)
+      }
+
 
       // Helpful show types being projected from their constructors
       def constructorArgumentMessage(c: Ctor_Uni, leftEnd: Bool, level: Int): (Message, Ls[Loc], Bool, Int, Bool) = {
-        val ty = if (leftEnd) { c.a } else { c.b }
-        val locs = ty.uniqueTypeUseLocations.collect {
+        val ty = selectType(c, leftEnd)
+        val locs = extractUniqueTypeUseLocations(ty)
+        createMessage(ty, locs, false, level, true)
+      }
+
+      def selectType(c: Ctor_Uni, leftEnd: Bool): ST = {
+        if (leftEnd) c.a else c.b
+      }
+
+      def extractUniqueTypeUseLocations(ty: ST): Ls[Loc] = {
+        ty.uniqueTypeUseLocations.collect {
           case TypeProvenance(S(loc), _, _, _) => loc
         }
-        (msg(ty), locs, false, level, true)
       }
+
 
       val report = {
         val msgs = flow.iterator.sliding(2).zipWithIndex.collect {
-          // single constraint
-          case (Seq(c: Constraint), _) => constraintToMessage(c, true).map(L(_))
-          // single constructor show projected types
+          case (Seq(c: Constraint), _) =>
+            constraintToMessage(c, true).map(L(_))
+
           case (Seq(ctor@Ctor_Uni(_, _, _, _, uni)), _) =>
-            L(constructorArgumentMessage(ctor, true, level)) ::
-              R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)) ::
-              L(constructorArgumentMessage(ctor, false, level)) ::
-              Nil
-          case (Seq(c: Constraint, _: Constraint), _) => constraintToMessage(c).map(L(_))
-          case (Seq(c: Constraint, _: Ctor_Uni), _) => constraintToMessage(c, true).map(L(_))
-          // if there are two constructors side by side
-          // project their common type once
+            List(
+              L(constructorArgumentMessage(ctor, true, level)),
+              R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)),
+              L(constructorArgumentMessage(ctor, false, level))
+            )
+
+          case (Seq(c: Constraint, _: Constraint), _) =>
+            constraintToMessage(c).map(L(_))
+
+          case (Seq(c: Constraint, _: Ctor_Uni), _) =>
+            constraintToMessage(c, true).map(L(_))
+
           case (Seq(ctor@Ctor_Uni(_, _, _, _, uni), ctor2: Ctor_Uni), idx) if ctor.b === ctor2.a =>
-            val project = L(constructorArgumentMessage(ctor, false, level))
             val nestedReport = R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV))
+            val project = L(constructorArgumentMessage(ctor, false, level))
             if (idx == 0) {
-              L(constructorArgumentMessage(ctor, true, level)) :: nestedReport :: project :: Nil
+              List(
+                L(constructorArgumentMessage(ctor, true, level)),
+                nestedReport,
+                project
+              )
             } else {
-              nestedReport :: project :: Nil
+              List(nestedReport, project)
             }
-          // if constructor is first in the sequence project left type
+
           case (Seq(ctor@Ctor_Uni(_, _, _, _, uni), _), idx) =>
-            val nestedReport = R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)) :: Nil
+            val nestedReport = List(R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)))
             if (idx == 0) {
               L(constructorArgumentMessage(ctor, true, level)) :: nestedReport
             } else {
               nestedReport
             }
-        }.flatten.toList ::: (if (flow.length != 1) flow.last match {
-          case c: Constraint => constraintToMessage(c, true).map(L(_))
-          case ctor@Ctor_Uni(_, _, _, _, uni) =>
-            // if constructor is last in the sequence project type
-            R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)) :: L(constructorArgumentMessage(ctor, false, level)) :: Nil
-        } else { Nil })
+        }.flatten.toList ::: {
+          if (flow.length != 1) {
+            flow.last match {
+              case c: Constraint =>
+                constraintToMessage(c, true).map(L(_))
+
+              case ctor@Ctor_Uni(_, _, _, _, uni) =>
+                List(
+                  R(uni.createErrorMessage(level + 1, S(sctx))(ctx, showTV)),
+                  L(constructorArgumentMessage(ctor, false, level))
+                )
+            }
+          } else {
+            Nil
+          }
+        }
+
         UniErrReport(mainMsg, seqString, msgs, sctx, level)
       }
       report
@@ -452,62 +491,51 @@ trait UnificationSolver extends TyperDatatypes {
 
     def freshenUnification(u: Unification): Unification = u.copy(flow = u.flow.map(freshenDataFlow))
 
-    def freshen(ty: SimpleType): SimpleType =
-      if (!rigidify // Rigidification now also substitutes TypeBound-s with fresh vars;
-        // since these have the level of their bounds, when rigidifying
-        // we need to make sure to copy the whole type regardless of level...
-        && ty.level <= lim) ty else ty match {
-        case tv: TypeVariable => freshened.get(tv) match {
-          case Some(tv) => tv
-          case None if rigidify =>
-            val rv = RigidTypeVariable( // Rigid type variables (ie, skolems) are encoded as TraitTag-s
-              Var(tv.nameHint.getOrElse("_" + freshVar(noProv).toString)))(tv.prov)
-            if (tv.lowerBounds.nonEmpty || tv.upperBounds.nonEmpty) {
-              // The bounds of `tv` may be recursive (refer to `tv` itself),
-              //    so here we create a fresh variabe that will be able to tie the presumed recursive knot
-              //    (if there is no recursion, it will just be a useless type variable)
-              val tv2 = freshVar(tv.prov, tv.nameHint)
-              freshened += tv -> tv2
-              // Assuming there were no recursive bounds, given L <: tv <: U,
-              //    we essentially need to turn tv's occurrence into the type-bounds (rv | L)..(rv & U),
-              //    meaning all negative occurrences should be interpreted as rv | L
-              //    and all positive occurrences should be interpreted as rv & U
-              //    where rv is the rigidified variables.
-              // Now, since there may be recursive bounds, we do the same
-              //    but through the indirection of a type variable tv2:
-              tv2.lowerBounds ::= tv.lowerBounds.map(freshen).foldLeft(rv: ST)(_ & _)
-              tv2.upperBounds ::= tv.upperBounds.map(freshen).foldLeft(rv: ST)(_ | _)
-              // freshen all the unifications for the type variable
-              // without this unification cannot detect errors because
-              // when a type scheme is instantiated it won't have the
-              // types it's been previously unified with
-              tv2.uni = tv.uni.map(freshenUnification)
-              tv2
-            } else {
-              freshened += tv -> rv
-              rv
-            }
-          case None =>
-            val v = freshVar(tv.prov, tv.nameHint)
-            freshened += tv -> v
-            v.lowerBounds = tv.lowerBounds.mapConserve(freshen)
-            v.upperBounds = tv.upperBounds.mapConserve(freshen)
-            // freshen all the unifications for the type variable
-            // without this unification cannot detect errors because
-            // when a type scheme is instantiated it won't have the
-            // types it's been previously unified with
-            v.uni = tv.uni.map(freshenUnification)
-            v
-        }
+    def freshen(ty: SimpleType): SimpleType = {
+      if (!rigidify && ty.level <= lim) ty else ty match {
+        case tv: TypeVariable => freshenTypeVariable(tv)
         case t@FunctionType(l, r) => FunctionType(freshen(l), freshen(r))(t.prov)
         case t@ComposedType(p, l, r) => ComposedType(p, freshen(l), freshen(r))(t.prov)
         case t@TupleType(fs) => TupleType(fs.mapValues(freshen))(t.prov)
         case e@ExtrType(_) => e
         case p@ProvType(und) => ProvType(freshen(und))(p.prov)
-        case p@ProvType(und) => freshen(und)
         case _: RigidTypeVariable => ty
         case tr@TypeRef(d, ts) => TypeRef(d, ts.map(freshen))(tr.prov)
       }
+    }
+
+    def freshenTypeVariable(tv: TypeVariable): SimpleType = {
+      freshened.get(tv) match {
+        case Some(tv) => tv
+        case None if rigidify => createRigidTypeVariable(tv)
+        case None => createFreshTypeVariable(tv)
+      }
+    }
+
+    def createRigidTypeVariable(tv: TypeVariable): SimpleType = {
+      val rv = RigidTypeVariable(Var(tv.nameHint.getOrElse("_" + freshVar(noProv).toString)))(tv.prov)
+      if (tv.lowerBounds.nonEmpty || tv.upperBounds.nonEmpty) {
+        val tv2 = freshVar(tv.prov, tv.nameHint)
+        freshened += tv -> tv2
+        tv2.lowerBounds ::= tv.lowerBounds.map(freshen).foldLeft(rv: ST)(_ & _)
+        tv2.upperBounds ::= tv.upperBounds.map(freshen).foldLeft(rv: ST)(_ | _)
+        tv2.uni = tv.uni.map(freshenUnification)
+        tv2
+      } else {
+        freshened += tv -> rv
+        rv
+      }
+    }
+
+    def createFreshTypeVariable(tv: TypeVariable): SimpleType = {
+      val v = freshVar(tv.prov, tv.nameHint)
+      freshened += tv -> v
+      v.lowerBounds = tv.lowerBounds.mapConserve(freshen)
+      v.upperBounds = tv.upperBounds.mapConserve(freshen)
+      v.uni = tv.uni.map(freshenUnification)
+      v
+    }
+
 
     freshen(ty)
   }
