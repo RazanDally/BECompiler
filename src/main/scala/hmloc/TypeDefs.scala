@@ -7,7 +7,7 @@ import hmloc.utils.shorthands._
 import scala.collection.mutable.{Map => MutMap, Set => MutSet}
 import scala.util.chaining._
 
-class TypeDefs extends UnificationSolver { self: Typer =>
+class TypeDefs extends Unificator { self: Typer =>
   import TypeProvenance.{apply => tp}
   
   

@@ -431,7 +431,7 @@ object DFRunner{
               val temp = typer.dbg
               typer.dbg = mode.unifyDbg
               typer.uniState.unify()
-              val errors = typer.outputUnificationErrors()
+              val errors = typer.printUnificationErrors()
               if (errors.nonEmpty) typingOutputs += L(errors)
               typer.reportNewUnificationErrors(ctx, raise)
               typer.uniState.clear()

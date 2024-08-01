@@ -13,13 +13,13 @@ import scala.collection.mutable.{Queue => MutQueue, Set => MutSet, Map => MutMap
  * 
  * The unification algorithm is formally described in the section 4 of the paper.
  */
-trait UnificationSolver extends TyperDatatypes {
+trait Unificator extends TyperDatatypes {
   self: Typer =>
 
   val cache: MutSet[(ST, ST)] = MutSet()
   var unifyMode: Bool = false
 
-  class UnificationState (
+  class UState(
     cache: MutSet[(ST, ST, Int)] = MutSet(),
     val queue: MutQueue[Unification] = MutQueue(),
     val error: MutSet[Unification] = MutSet(),
@@ -97,7 +97,7 @@ trait UnificationSolver extends TyperDatatypes {
 
           if (rhs.level > tv.level) {
             // Extrude the type of rhs to the level of tv
-            extrudeTy(rhs)(tv.level)
+            getType(rhs)(tv.level)
             println(s"U EXTR ~> ${rhs.toString}")
           }
 
@@ -120,7 +120,7 @@ trait UnificationSolver extends TyperDatatypes {
         case (lhs, tv: TypeVariable) =>
           if (lhs.level > tv.level) {
             // Extrude the type of lhs to the level of tv
-            extrudeTy(lhs)(tv.level)
+            getType(lhs)(tv.level)
             println(s"U EXTR ~> ${lhs.toString}")
           }
 
@@ -157,26 +157,26 @@ trait UnificationSolver extends TyperDatatypes {
       }
     }
 
-    def extrudeDF(df: DataFlow)(implicit lvl: Int): Unit = df match {
-      case c@Constraint(a, b) => extrudeTy(a); extrudeTy(b)
+    def getDataFlow(df: DataFlow)(implicit lvl: Int): Unit = df match {
+      case c@Constraint(a, b) => getType(a); getType(b)
       case Ctor_Uni(a, b, ctora, ctorb, uni) =>
-        extrudeTy(a); extrudeTy(b); extrudeTy(ctora); extrudeTy(ctorb); extrudeUni(uni)
+        getType(a); getType(b); getType(ctora); getType(ctorb); getUnification(uni)
     }
 
-    def extrudeUni(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(extrudeDF)
+    def getUnification(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(getDataFlow)
 
-    def extrudeTy(ty: ST)(implicit lvl: Int): Unit = {
+    def getType(ty: ST)(implicit lvl: Int): Unit = {
       if (ty.level <= lvl) ty else ty match {
-        case t @ FunctionType(l, r) => extrudeTy(l); extrudeTy(r)
-        case t @ ComposedType(p, l, r) => extrudeTy(l); extrudeTy(r)
-        case t @ TupleType(fs) => fs.foreach(tup => extrudeTy(tup._2))
+        case t @ FunctionType(l, r) => getType(l); getType(r)
+        case t @ ComposedType(p, l, r) => getType(l); getType(r)
+        case t @ TupleType(fs) => fs.foreach(tup => getType(tup._2))
         case tv: TypeVariable =>
           tv.level = lvl
-          tv.uni.foreach(extrudeUni(_))
+          tv.uni.foreach(getUnification(_))
         case e @ ExtrType(_) => e
-        case p @ ProvType(und) => extrudeTy(und)
+        case p @ ProvType(und) => getType(und)
         case _: RigidTypeVariable => ty
-        case tr @ TypeRef(d, ts) => ts.foreach(extrudeTy)
+        case tr @ TypeRef(d, ts) => ts.foreach(getType)
       }
     }
 
@@ -186,9 +186,9 @@ trait UnificationSolver extends TyperDatatypes {
     }
   }
 
-  val uniState = new UnificationState()
+  val uniState = new UState()
 
-  def outputUnificationErrors(): Ls[Str] = {
+  def printUnificationErrors(): Ls[Str] = {
     if (uniState.error.nonEmpty) {
       uniState.reportStats :: s"UERR ${uniState.error.size} errors" :: uniState.error.map(_.toString()).toList
     } else {
@@ -239,26 +239,35 @@ trait UnificationSolver extends TyperDatatypes {
         (Constraint.startTransition(a, ctora), level) :: uni.constraintSequence ::: (Constraint.endTransition(ctorb, b), level) :: Nil
     }.toList
 
-    def createSequenceString(implicit ctx: Ctx): Str = {
+    def generateSequenceString(implicit ctx: Ctx): Str = {
       implicit val showTV: Set[TV] = sequenceTVs
 
-      // Currently only show type sequence for types at current level of nesting
-      val sequenceMessage: Ls[Message] = constraintSequence.iterator.zipWithIndex.filter(_._1._2 == level).map{
-        case ((c@Constraint(a, b), _), idx) => c.transition match {
-          case Some(true) => msg"(${a.expOcamlTy()(ctx, showTV)}) ~~~~ "
-          case Some(false) => if (idx == constraintSequence.length - 1) msg"(${b.expOcamlTy()(ctx, showTV)})" else msg""
-          case None =>
-            val arrowStr = if (c.dir) "--->" else "<---"
-            val last = idx == constraintSequence.length - 1
-            msg"(${a.expOcamlTy()(ctx, showTV)}) $arrowStr " + (if (last) msg"(${b.expOcamlTy()(ctx, showTV)})" else msg"")
-        }
+      // Currently only show type sequence for types at the current level of nesting
+      val sequenceMessages: List[Message] = constraintSequence.iterator.zipWithIndex.collect {
+        case ((c @ Constraint(a, b), lvl), idx) if lvl == level =>
+          c.transition match {
+            case Some(true) =>
+              msg"(${a.expOcamlTy()(ctx, showTV)}) ~~~~ "
+            case Some(false) =>
+              if (idx == constraintSequence.length - 1)
+                msg"(${b.expOcamlTy()(ctx, showTV)})"
+              else
+                msg""
+            case None =>
+              val arrowStr = if (c.dir) "--->" else "<---"
+              val last = idx == constraintSequence.length - 1
+              msg"(${a.expOcamlTy()(ctx, showTV)}) $arrowStr " + {
+                if (last) msg"(${b.expOcamlTy()(ctx, showTV)})" else msg""
+              }
+          }
       }.toList
 
       val sctx = createCtx
       val sb = new mutable.StringBuilder()
-      sequenceMessage.foreach(msg => sb ++= msg.showIn(sctx))
+      sequenceMessages.foreach(msg => sb ++= msg.showIn(sctx))
       sb.toString()
     }
+
 
     def concat(other: Unification): Unification = {
       assert(b.unwrapProvs == other.a.unwrapProvs, s"$b != ${other.a}")
@@ -276,7 +285,7 @@ trait UnificationSolver extends TyperDatatypes {
       println(s"UERR REPORT $toString")
       val sctx = showCtx.getOrElse(createCtx)
       val mainMsg = msg"Type `${a.expOcamlTy()(ctx, Set())}` does not match `${b.expOcamlTy()(ctx, Set())}`"
-      val seqString = createSequenceString
+      val seqString = generateSequenceString
       def msg(a: ST): Message = a.unwrapProvs match {
         case tv: TV => msg"(${tv.expOcamlTy()}) is assumed for"
         case st => msg"(${st.expOcamlTy()}) comes from"
