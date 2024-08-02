@@ -13,7 +13,7 @@ import scala.collection.mutable.{Queue => MutQueue, Set => MutSet, Map => MutMap
  * 
  * The unification algorithm is formally described in the section 4 of the paper.
  */
-trait Unificator extends TyperDatatypes {
+trait Unifier extends TyperDatatypes {
   self: Typer =>
 
   val cache: MutSet[(ST, ST)] = MutSet()
