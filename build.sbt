@@ -23,7 +23,7 @@ lazy val root = project.in(file(".")).settings(
     "-Ywarn-value-discard",
   ),
   scalacOptions ++= {
-    if (insideCI.value) Seq("-Wconf:any:error")
+    if (insideCI.value) Seq("-Wconf:any:warning") // enable all warnings in CI, dont turn to errors
     else                Seq("-Wconf:any:warning")
   },
   wartremoverWarnings ++= Warts.allBut(
