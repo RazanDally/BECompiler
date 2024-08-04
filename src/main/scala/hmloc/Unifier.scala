@@ -85,9 +85,9 @@ trait Unifier extends TyperDatatypes {
         case (FunctionType(arg1, res1), FunctionType(arg2, res2)) =>
           subUnify(Seq(arg1), Seq(arg2), st1, st2, u)
           subUnify(Seq(res1), Seq(res2), st1, st2, u)
+        // there is no if clause for function types as the sub unifier should handle this
+        // by checking arguments / return values with eachother
 
-        // U-Error for FunctionType
-        case (_: FunctionType, _: FunctionType) => addError(u)
 
         // TypeVariable already unified
         case (tv1: TypeVariable, tv2: TypeVariable) if tv1 === tv2 => ()
@@ -95,11 +95,7 @@ trait Unifier extends TyperDatatypes {
         // U-Var-R
         case (tv: TypeVariable, rhs) =>
 
-          if (rhs.level > tv.level) {
-            // Extrude the type of rhs to the level of tv
-            getType(rhs)(tv.level)
-            println(s"U EXTR ~> ${rhs.toString}")
-          }
+          handsideTypeLevel(rhs, tv)
 
           tv.uni.foreach(tvuni => {
             if (tvuni.a.unwrapProvs == tv) {
@@ -109,20 +105,13 @@ trait Unifier extends TyperDatatypes {
             }
           })
 
-          rhs match {
-            case rhsTv: TypeVariable => rhsTv.uni ::= u
-            case _ => ()
-          }
+          HandleHSTypeVariable(rhs, u)
 
           tv.uni ::= u
 
         // U-Var-L
         case (lhs, tv: TypeVariable) =>
-          if (lhs.level > tv.level) {
-            // Extrude the type of lhs to the level of tv
-            getType(lhs)(tv.level)
-            println(s"U EXTR ~> ${lhs.toString}")
-          }
+          handsideTypeLevel(lhs, tv)
 
           tv.uni.foreach(tvuni => {
             if (tvuni.a.unwrapProvs == tv) {
@@ -132,21 +121,39 @@ trait Unifier extends TyperDatatypes {
             }
           })
 
-          // If lhs is a type variable, update its unification list
-          lhs match {
-            case lhsTv: TypeVariable => lhsTv.uni ::= u
-            case _ => ()
-          }
+          HandleHSTypeVariable(lhs, u)
 
           // Add the current unification to tv's unification list
           tv.uni ::= u
+
         case (st1, st2) if st1 != st2 => addError(u)
         case _ => ()
       }
 
     }
 
-    def subUnify(args1: Seq[ST], args2: Seq[ST], tr1: ST, tr2: ST, u: Unification): Unit = {
+    private def handsideTypeLevel(hs :SimpleType, tv: TypeVariable): Unit = {
+      if (hs.level > tv.level) {
+        // Extrude the type of lhs to the level of tv
+        getType(hs)(tv.level)
+        println(s"U EXTR ~> ${hs.toString}")
+      }
+    }
+
+
+    /**
+     * If hs is a type variable, update its unification list
+     * @param hs SimpleType
+     * @param u Unification
+     */
+    private def HandleHSTypeVariable(hs: SimpleType, u: Unification): Unit = {
+      hs match {
+        case tv: TypeVariable => tv.uni ::= u
+        case _ => ()
+      }
+    }
+
+    private def subUnify(args1: Seq[ST], args2: Seq[ST], tr1: ST, tr2: ST, u: Unification): Unit = {
       val zippedArgs = args1.zip(args2)
       zippedArgs.foreach { case (arg1, arg2) =>
         // invoke ctor-uni to compute sub-unifications for their type arguments.
@@ -157,13 +164,13 @@ trait Unifier extends TyperDatatypes {
       }
     }
 
-    def getDataFlow(df: DataFlow)(implicit lvl: Int): Unit = df match {
-      case c@Constraint(a, b) => getType(a); getType(b)
+    private def getDataFlow(df: DataFlow)(implicit lvl: Int): Unit = df match {
+      case Constraint(a, b) => getType(a); getType(b)
       case Ctor_Uni(a, b, ctora, ctorb, uni) =>
         getType(a); getType(b); getType(ctora); getType(ctorb); getUnification(uni)
     }
 
-    def getUnification(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(getDataFlow)
+     private def getUnification(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(getDataFlow)
 
     def getType(ty: ST)(implicit lvl: Int): Unit = {
       if (ty.level <= lvl) () else ty match {
