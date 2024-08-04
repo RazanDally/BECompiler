@@ -14,7 +14,7 @@ ThisBuild / organizationName := "LPTK"
 lazy val root = project.in(file(".")).settings(
   name := "hmloc",
   version := "0.1",
-  scalaVersion := "2.13.6",
+  scalaVersion := "2.13.9",
   Compile / mainClass := Some("hmloc.MainApp"),
   scalacOptions ++= Seq(
     "-deprecation",

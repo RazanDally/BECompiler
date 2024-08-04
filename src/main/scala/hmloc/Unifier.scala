@@ -166,16 +166,16 @@ trait Unifier extends TyperDatatypes {
     def getUnification(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(getDataFlow)
 
     def getType(ty: ST)(implicit lvl: Int): Unit = {
-      if (ty.level <= lvl) ty else ty match {
+      if (ty.level <= lvl) () else ty match {
         case t @ FunctionType(l, r) => getType(l); getType(r)
         case t @ ComposedType(p, l, r) => getType(l); getType(r)
         case t @ TupleType(fs) => fs.foreach(tup => getType(tup._2))
         case tv: TypeVariable =>
           tv.level = lvl
           tv.uni.foreach(getUnification(_))
-        case e @ ExtrType(_) => e
+        case e @ ExtrType(_) => ()
         case p @ ProvType(und) => getType(und)
-        case _: RigidTypeVariable => ty
+        case _: RigidTypeVariable => ()
         case tr @ TypeRef(d, ts) => ts.foreach(getType)
       }
     }
