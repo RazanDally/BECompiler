@@ -265,7 +265,7 @@ trait TermImpl extends StatementImpl { self: Term =>
     case Let(isRec, name, rhs, body) =>
       s"let${if (isRec) " rec" else ""} $name = $rhs in $body" |> bra
     case Tup(xs) =>
-      xs.iterator.map(t => t + ",").mkString(" ") |> bra
+      xs.iterator.map(t => t.toString + ",").mkString(" ") |> bra
     case If(cond, body) => s"if $cond" + body.mkString(" then ") |> bra
   }}
 }

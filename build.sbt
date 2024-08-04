@@ -6,7 +6,6 @@ lazy val akkaHttpVersion = "10.6.3"
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 ThisBuild / scalaVersion     := "2.13.9"
-ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "io.lptk"
 ThisBuild / organizationName := "LPTK"
 
