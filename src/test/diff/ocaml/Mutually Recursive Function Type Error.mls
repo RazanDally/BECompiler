@@ -1,0 +1,25 @@
+(*This benchmark tests the algorithm's ability to handle mutually recursive functions and detect a type error when an incompatible argument type is passed to one of the functions*)
+let rec even n = if n = 0 then true else odd (n - 1) 
+and odd n = if n = 0 then false else even (n - 1) ;;
+//│ /!\ Parse error: Expected end-of-input:1:236, found "and odd n " at l.3:1: and odd n = if n = 0 then false else even (n - 1) ;;
+
+let main () = even true ;;
+//│ [ERROR] Type `err` does not match `bool -> _`
+//│ 
+//│	(err) ---> (bool -> _)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.5  let main () = even true ;;
+//││                       ^^^^
+//│ ▼ 
+//│ ◉ (bool -> _) comes from
+//│    - l.5  let main () = even true ;;
+//│                        ^^^^
+//│ ╔══[ERROR] identifier not found: even
+//│ ║  
+//│ ║  l.5:	let main () = even true ;;
+//│ ╙──    	              ^^^^
+//│ main: () -> 'a
+//│ U max: 1, total: 1
+//│ UERR 1 errors
+//│ L: 0 [err ~ ([bool] -> α42'), err <: ([bool] -> α42')] 

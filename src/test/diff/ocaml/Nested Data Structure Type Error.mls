@@ -1,0 +1,82 @@
+(*This benchmark tests the algorithm's ability to handle nested data structures (in this case, a binary tree) and detect a type error when an incompatible type is used in the construction of the data structure.*)
+type 'a tree = Leaf of 'a | Node of 'a tree * 'a * 'a tree ;;
+//│ Defined type alias tree[+'a]
+//│ Defined class Leaf[+'a]
+//│ Defined class Node[+'a]
+//│ Leaf: 'a -> tree['a]
+//│ Node: (tree['a], 'a, tree['a],) -> tree['a]
+
+let depth tree =
+  match tree with
+  | Leaf _ -> 1
+  | Node (left, _, right) -> 1 + max (depth left) (depth right) ;;
+//│ /!!!\ Uncaught error: scala.MatchError: (TypeName(Leaf),(TypeName(tree),List(0))) (of class scala.Tuple2)
+//│ 	at: hmloc.Typer.$anonfun$typeTerm$16(Typer.scala:458)
+//│ 	at: scala.Option.fold(Option.scala:263)
+//│ 	at: hmloc.Typer.$anonfun$typeTerm$9(Typer.scala:458)
+//│ 	at: scala.collection.immutable.List.foreach(List.scala:333)
+//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:440)
+//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
+//│ 	at: hmloc.Typer.typeTerm(Typer.scala:597)
+//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:373)
+//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
+//│ 	at: hmloc.Typer.typeTerm(Typer.scala:597)
+
+let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│ [ERROR] Type `err` does not match `_ tree -> _`
+//│ 
+//│	(err) ---> (_ tree -> _)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//││                       ^^^^^
+//│ ▼ 
+//│ ◉ (_ tree -> _) comes from
+//│    - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│                        ^^^^^
+//│ [ERROR] Type `int` does not match `bool`
+//│ 
+//│	(int) ---> (?b)  ~~~~ (?a)  ~~~~ (bool)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//││                                         ^
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│    - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│                                          ^
+//│   ◉ (?b  tree) comes from
+//│      - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│                                       ^^^^^^
+//│      - l.2  type 'a tree = Leaf of 'a | Node of 'a tree * 'a * 'a tree ;;
+//│                           ^^^^^^^^^^
+//│     ◉ (?b  tree * bool * _ tree) comes from
+//│     │  - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│    │                                   ^^^^^^^^^^^^^^^^^^^^^^
+//│     ▼ 
+//│     ◉ (?a  tree * ?a * ?a tree) comes from
+//│        - l.2  type 'a tree = Leaf of 'a | Node of 'a tree * 'a * 'a tree ;;
+//│                                                  ^^^^^^^^^^^^^^^^^^^^^^
+//│   ◉ (?a  tree) comes from
+//│      - l.2  type 'a tree = Leaf of 'a | Node of 'a tree * 'a * 'a tree ;;
+//│                                                ^^^^^^^
+//│ ◉ (?a)  is assumed for
+//│   ◉ (?a  tree * ?a * ?a tree) comes from
+//│   ▲  - l.2  type 'a tree = Leaf of 'a | Node of 'a tree * 'a * 'a tree ;;
+//│  │                                             ^^^^^^^^^^^^^^^^^^^^^^
+//│   │ 
+//│   ◉ (?b  tree * bool * _ tree) comes from
+//│      - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│                                      ^^^^^^^^^^^^^^^^^^^^^^
+//│ ◉ (bool) comes from
+//│    - l.9  let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│                                             ^^^^
+//│ ╔══[ERROR] identifier not found: depth
+//│ ║  
+//│ ║  l.9:	let main () = depth (Node (Leaf 1, true, Leaf 2)) ;;
+//│ ╙──    	              ^^^^^
+//│ main: () -> 'a
+//│ U max: 3, total: 14
+//│ UERR 2 errors
+//│ L: 0 [err ~ ([tree[α49']] -> α52'), err <: ([tree[α49']] -> α52')]
+//│ L: 2 [int ~ bool, int <: α50', [α50' - tree[α50'] ~ tree[α49'] - α49', L: 1 [tree[α50'] ~ tree[α49'], [tree[α50'] - ([[tree[α50']]], [[bool]], [[tree[α51']]],) ~ ([tree[α49']], [α49'], [tree[α49']],) - tree[α49'], L: 0 [([[tree[α50']]], [[bool]], [[tree[α51']]],) ~ ([tree[α49']], [α49'], [tree[α49']],), ([[tree[α50']]], [[bool]], [[tree[α51']]],) <: ([tree[α49']], [α49'], [tree[α49']],)]]]], [α49' - ([tree[α49']], [α49'], [tree[α49']],) ~ ([[tree[α50']]], [[bool]], [[tree[α51']]],) - bool, L: 0 [([tree[α49']], [α49'], [tree[α49']],) ~ ([[tree[α50']]], [[bool]], [[tree[α51']]],), ([tree[α49']], [α49'], [tree[α49']],) :> ([[tree[α50']]], [[bool]], [[tree[α51']]],)]]]

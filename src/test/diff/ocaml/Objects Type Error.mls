@@ -5,6 +5,7 @@ class virtual ['a] stackable =
     method virtual push : 'a -> unit
     method virtual pop : unit -> 'a
   end ;;
+//│ /!\ Parse error: Expected end-of-input:1:1, found "class virt" at l.3:1: class virtual ['a] stackable =
 
 class int_stack =
   object
@@ -15,7 +16,9 @@ class int_stack =
       | x :: xs -> stack <- xs; x
       | [] -> raise (Failure "empty stack")
  end ;;
+//│ /!\ Parse error: Expected end-of-input:1:1, found "class int_" at l.9:1: class int_stack =
 
 let main () =
   let stack = int_stack in
   stack#push true; stack#pop () ;;
+//│ /!\ Parse error: Expected end-of-input:3:8, found "#push true" at l.21:8:   stack#push true; stack#pop () ;; 

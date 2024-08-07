@@ -4,11 +4,14 @@ type expr =
   | [`Const of int]
   | [`Add of expr * expr]
   | [`Bool of bool]
+//│ /!\ Parse error: Expected (ocamlConstructorDecl.rep(1) | (("(" | Index ~ tyName | Index ~ ocamlTyParam).rep(1) | "(").rep(1)):2:3, found "| [`Const " at l.4:3:   | [`Const of int]
 
 let eval expr =
   match expr with
   | `Const n -> n
   | `Add (e1, e2) -> eval e1 + eval e2
   | `Bool b -> if b then 1 else 0 ;;
+//│ /!\ Parse error: Expected end-of-input:3:5, found "`Const n -" at l.10:5:   | `Const n -> n
 
 let main () = eval (`Add (`Const 1, `Bool true)) ;;
+//│ /!\ Parse error: Expected ")":1:21, found "`Add (`Con" at l.14:21: let main () = eval (`Add (`Const 1, `Bool true)) ;; 

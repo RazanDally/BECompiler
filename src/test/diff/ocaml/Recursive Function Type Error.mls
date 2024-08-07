@@ -1,0 +1,35 @@
+(*This benchmark tests the algorithm's ability to handle recursive functions
+ and detect a type error when an incompatible argument type is passed to a recursive function.*)
+ let rec factorial n =
+  if n = 0 then 1 else n * factorial (n - 1) ;;
+let main () = factorial true ;;
+//│ [ERROR] Type `int` does not match `bool`
+//│ 
+//│	(int) ~~~~ (bool)
+//│ 
+//│ ◉ (int) comes from
+//│    - l.4    if n = 0 then 1 else n * factorial (n - 1) ;;
+//│                                               ^^^^^^^
+//│    - lib. let String_length: string -> int
+//│                                  ^^^
+//│   ◉ (int -> _) comes from
+//│   ▲  - l.4    if n = 0 then 1 else n * factorial (n - 1) ;;
+//│  │                                    ^^^^^^^^^
+//│   │  - l.3  let rec factorial n =
+//│  │                 ^^^^^^^^^
+//│   │ 
+//│   ◉ (?factorial)  is assumed for
+//│   │  - l.3  let rec factorial n =
+//│  │                 ^^^^^^^^^
+//│   ▼ 
+//│   ◉ (bool -> _) comes from
+//│      - l.5  let main () = factorial true ;;
+//│                          ^^^^^^^^^
+//│ ◉ (bool) comes from
+//│    - l.5  let main () = factorial true ;;
+//│                                  ^^^^
+//│ factorial: int -> int
+//│ main: () -> int
+//│ U max: 4, total: 27
+//│ UERR 1 errors
+//│ L: 1 [int ~ bool, [int - ([int] -> α52') ~ ([bool] -> α54') - bool, L: 0 [([int] -> α52') ~ ([bool] -> α54'), ([int] -> α52') :> factorial49', factorial49' <: ([bool] -> α54')]]]

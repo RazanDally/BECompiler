@@ -1,0 +1,35 @@
+(*This benchmark tests the algorithm's ability to detect and report a level-1 error, where the two branches of a conditional expression have incompatible types (int and string).*)
+let test x y = if x then y else "hello" ;;
+let main () = test true 42 ;;
+//│ [ERROR] Type `int` does not match `string`
+//│ 
+//│	(int) ---> (?b)  ---> (?a)  <--- (string)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.3  let main () = test true 42 ;;
+//││                                 ^^
+//│ │  - l.2  let test x y = if x then y else "hello" ;;
+//││                    ^
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│ │  - l.2  let test x y = if x then y else "hello" ;;
+//││                    ^
+//│ │  - l.2  let test x y = if x then y else "hello" ;;
+//││                                  ^
+//│ │  - l.2  let test x y = if x then y else "hello" ;;
+//││                        ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.2  let test x y = if x then y else "hello" ;;
+//││                        ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │ 
+//│ ◉ (string) comes from
+//│    - l.2  let test x y = if x then y else "hello" ;;
+//│                                          ^^^^^^^
+//│ test: bool -> string -> string
+//│ main: () -> 'a
+//│   where
+//│     'a = int, string
+//│ U max: 2, total: 9
+//│ UERR 1 errors
+//│ L: 0 [int ~ string, int <: α47', α47' <: α48', α48' :> string] 
