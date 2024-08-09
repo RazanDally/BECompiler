@@ -46,40 +46,28 @@ object MainApp {
       if (!containsLetterOrDigit(bottomLineList.mkString) && bottomLineList.contains('^')
         && lines(i + 1).startsWith(outputMarker)) {
 
-        //this is to fix the issue where ^ are one index to the right over the topLine
-        //this only happens when the top line includes a line number
-        var skipFirst = lines(i).contains("- l.")
-
         //advance the loop by an extra line as we are going to add the carets
         i += 1
 
 
         lastWasCaret = true
         var newTopLine = ""
-        var newBottomLine = ""
         var inCaret = false
         val minLength = math.min(topLineList.length, bottomLineList.length)
         for (j <- 0 until minLength) {
           if (!inCaret && bottomLineList(j) == '^') {
             inCaret = true
             newTopLine += "<span class=\"caret_underlined\">"
-            newBottomLine += "<span class=\"carets\">"
           }
           newTopLine += topLineList(j)
-          if(skipFirst && bottomLineList(j) == ' ') {
-            skipFirst = false
-          }
-          else newBottomLine += bottomLineList(j)
 
           if (inCaret && bottomLineList(j) != '^') {
             inCaret = false
             newTopLine += "</span>"
-            newBottomLine += "</span>"
           }
         }
         if (inCaret) {
           newTopLine += "</span>"
-          newBottomLine += "</span>"
         }
         //if the top line is longer than the bottom line, then we need to add the rest of the top line
         if (topLineList.length > bottomLineList.length) {
@@ -87,16 +75,9 @@ object MainApp {
             newTopLine += topLineList(j)
           }
         }
-        //if the bottom line is longer than the top line, then we need to add the rest of the bottom line
-        if (bottomLineList.length > topLineList.length) {
-          for (j <- topLineList.length until bottomLineList.length) {
-            newBottomLine += bottomLineList(j)
-          }
-        }
 
         //add the new lines to the list
         listOfNewLines = listOfNewLines.appended(newTopLine)
-        listOfNewLines = listOfNewLines.appended(newBottomLine)
       }
       else
       {
