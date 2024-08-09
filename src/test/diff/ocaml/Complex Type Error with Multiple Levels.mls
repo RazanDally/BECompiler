@@ -1,0 +1,53 @@
+(*This benchmark tests the algorithm's ability to detect and report a complex type error that involves multiple levels of data flow mismatches, including a recursive function, a higher-order function, and a combination of different types.*)
+
+let rec fib n =
+  if n < 2 then n else fib (n - 1) + fib (n - 2);;
+//│ fib: int -> int
+
+let combine f x y = (f x, f y);;
+//│ combine: ('a -> 'b) -> 'a -> 'a -> ('b, 'b,)
+
+let main () = combine fib true 42;;
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│	(bool) ---> (?b)  ~~~~ (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.8  let main () = combine fib true 42;;
+//││                                   ^^^^
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│    - l.6  let combine f x y = (f x, f y);;
+//│                        ^
+//│   ◉ (?b  -> _) comes from
+//│   ▲  - l.6  let combine f x y = (f x, f y);;
+//│  │                              ^
+//│   │  - l.6  let combine f x y = (f x, f y);;
+//│  │                     ^
+//│   │ 
+//│   ◉ (?a)  is assumed for
+//│   ▲  - l.6  let combine f x y = (f x, f y);;
+//│  │                     ^
+//│   │  - l.8  let main () = combine fib true 42;;
+//│  │                               ^^^
+//│   │  - l.3  let rec fib n =
+//│  │                 ^^^
+//│   │ 
+//│   ◉ (?fib)  is assumed for
+//│   │  - l.3  let rec fib n =
+//│  │                 ^^^
+//│   ▼ 
+//│   ◉ (int -> _) comes from
+//│      - l.4    if n < 2 then n else fib (n - 1) + fib (n - 2);;
+//│                                                 ^^^
+//│ ◉ (int) comes from
+//│    - l.4    if n < 2 then n else fib (n - 1) + fib (n - 2);;
+//│                                                   ^^^^^^^
+//│    - lib. let String_length: string -> int
+//│                                  ^^^
+//│ main: () -> ('a, 'a,)
+//│   where
+//│     'a = bool, int
+//│ U max: 35, total: 81
+//│ UERR 1 errors
+//│ L: 1 [bool ~ int, bool <: α58', [α58' - ([α58'] -> α59') ~ ([int] -> α64') - int, L: 0 [([α58'] -> α59') ~ ([int] -> α64'), ([α58'] -> α59') :> α56', α56' :> fib61', fib61' <: ([int] -> α64')]]]

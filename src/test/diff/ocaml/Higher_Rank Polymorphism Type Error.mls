@@ -1,0 +1,77 @@
+(*This benchmark tests the algorithm's ability to handle higher-rank polymorphism and detect a type error when a function that expects a higher-rank polymorphic type is applied to an argument of an incompatible type*)
+
+let apply_twice f x = f (f x) ;;
+//│ apply_twice: ('a -> 'a) -> 'a -> 'a
+
+let main () =
+  let add_one x = x + 1 in
+  apply_twice add_one true ;;
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│	(bool) ---> (?d)  ~~~~ (?b)  ~~~~ (?c)  ~~~~ (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.7    apply_twice add_one true ;;
+//││                               ^^^^
+//│ ▼ 
+//│ ◉ (?d)  is assumed for
+//│    - l.3  let apply_twice f x = f (f x) ;;
+//│                            ^
+//│   ◉ (?d  -> ?b) comes from
+//│   ▲  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                                  ^
+//│   │  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   │ 
+//│   ◉ (?a)  is assumed for
+//│   │  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   ▼ 
+//│   ◉ (?b  -> ?c) comes from
+//│      - l.3  let apply_twice f x = f (f x) ;;
+//│                                  ^
+//│ ◉ (?b)  is assumed for
+//│    - l.3  let apply_twice f x = f (f x) ;;
+//│                                  ^^^^^
+//│   ◉ (?d  -> ?b) comes from
+//│   ▲  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                                  ^
+//│   │  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   │ 
+//│   ◉ (?a)  is assumed for
+//│   │  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   ▼ 
+//│   ◉ (?b  -> ?c) comes from
+//│      - l.3  let apply_twice f x = f (f x) ;;
+//│                                  ^
+//│ ◉ (?c)  is assumed for
+//│    - l.3  let apply_twice f x = f (f x) ;;
+//│                                ^^^^^^^
+//│   ◉ (?b  -> ?c) comes from
+//│   ▲  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                               ^
+//│   │  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   │ 
+//│   ◉ (?a)  is assumed for
+//│   ▲  - l.3  let apply_twice f x = f (f x) ;;
+//│  │                         ^
+//│   │  - l.7    apply_twice add_one true ;;
+//│  │                       ^^^^^^^
+//│   │ 
+//│   ◉ (_ -> int) comes from
+//│      - l.6    let add_one x = x + 1 in
+//│                          ^^^^^^^^^
+//│ ◉ (int) comes from
+//│    - l.6    let add_one x = x + 1 in
+//│                            ^^^^^
+//│    - lib. let (^): string -> string -> string
+//│                                  ^^^
+//│ main: () -> 'a
+//│   where
+//│     'a = bool, int
+//│ U max: 4, total: 22
+//│ UERR 1 errors
+//│ L: 1 [bool ~ int, bool <: α51', [α51' - ([α51'] -> α49') ~ (α49' -> α50') - α49', L: 0 [([α51'] -> α49') ~ (α49' -> α50'), ([α51'] -> α49') :> α48', α48' <: (α49' -> α50')]], [α49' - ([α51'] -> α49') ~ (α49' -> α50') - α50', L: 0 [([α51'] -> α49') ~ (α49' -> α50'), ([α51'] -> α49') :> α48', α48' <: (α49' -> α50')]], [α50' - (α49' -> α50') ~ (α52' -> [int]) - int, L: 0 [(α49' -> α50') ~ (α52' -> [int]), (α49' -> α50') :> α48', α48' :> (α52' -> [int])]]] 

@@ -1,0 +1,24 @@
+(*This benchmark tests the algorithm's ability to handle type classes and detect a type error when an incompatible type is used with a type class method.*)
+class virtual ['a] printable =
+  object
+    method virtual print : 'a -> unit
+  end ;;
+//│ /!\ Parse error: Expected end-of-input:1:157, found "class virt" at l.2:1: class virtual ['a] printable =
+
+class int_printer =
+  object
+    inherit [int] printable
+    method print x = print_int x
+  end ;;
+//│ /!\ Parse error: Expected end-of-input:1:1, found "class int_" at l.7:1: class int_printer =
+
+class string_printer =
+  object
+    inherit [string] printable
+    method print x = print_endline x
+  end ;;
+//│ /!\ Parse error: Expected end-of-input:1:1, found "class stri" at l.13:1: class string_printer =
+
+let main () =
+  let printer = int_printer in printer#print "hello" ;;
+//│ /!\ Parse error: Expected end-of-input:2:39, found "#print \"he" at l.20:39:   let printer = int_printer in printer#print "hello" ;; 

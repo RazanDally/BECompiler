@@ -1,0 +1,27 @@
+(*This benchmark tests the algorithm's ability to handle polymorphic functions and detect a type error when a polymorphic function is applied to arguments of incompatible types.*)
+let id x = x ;;
+let main () = id true 42 ;;
+//│ [ERROR] Type `bool` does not match `int -> _`
+//│ 
+//│	(bool) ---> (?a)  ---> (int -> _)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.3  let main () = id true 42 ;;
+//││                          ^^^^
+//│ │  - l.2  let id x = x ;;
+//││                ^
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.2  let id x = x ;;
+//││                ^
+//│ │  - l.2  let id x = x ;;
+//││                    ^
+//│ ▼ 
+//│ ◉ (int -> _) comes from
+//│    - l.3  let main () = id true 42 ;;
+//│                        ^^^^^^^
+//│ id: 'a -> 'a
+//│ main: () -> 'a
+//│ U max: 1, total: 3
+//│ UERR 1 errors
+//│ L: 0 [bool ~ ([int] -> α44'), bool <: α43', α43' <: ([int] -> α44')] 

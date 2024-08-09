@@ -1,0 +1,51 @@
+(*This benchmark tests the algorithm’s ability to detect and report a level-2 error, where multiple conflicting data flows converge, leading to a type mismatch.*)
+let apply f x = f x ;;
+let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+let main () = test true 42 ;;
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│	(bool) ---> (?a)  ---> (?b)  ~~~~ (?c)  ---> (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.4  let main () = test true 42 ;;
+//││                            ^^^^
+//│ │  - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//││                  ^
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//││                  ^
+//│ │  - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//││                                                                     ^
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│    - l.2  let apply f x = f x ;;
+//│                      ^
+//│   ◉ (?b  -> _) comes from
+//│   ▲  - l.2  let apply f x = f x ;;
+//│  │                         ^
+//│   │  - l.2  let apply f x = f x ;;
+//│  │                   ^
+//│   │ 
+//│   ◉ (?d)  is assumed for
+//│   ▲  - l.2  let apply f x = f x ;;
+//│  │                   ^
+//│   │ 
+//│   ◉ (?c  -> int) comes from
+//│      - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//│                                                       ^^^^^^^^^^^^^^^^
+//│ ◉ (?c)  is assumed for
+//│ │  - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//││                                                         ^
+//│ │  - l.3  let test x y = apply (fun z -> z) y, apply (fun z -> z + 1) x ;;
+//││                                                              ^
+//│ ▼ 
+//│ ◉ (int) comes from
+//│    - lib. let (^): string -> string -> string
+//│                    ^^^
+//│ apply: ('a -> 'b) -> 'a -> 'b
+//│ test: 'a -> 'b -> ('c, int,)
+//│ main: () -> (int, int,)
+//│ U max: 2, total: 30
+//│ UERR 1 errors
+//│ L: 1 [bool ~ int, bool <: α58', α58' <: α59', [α59' - ([α59'] -> α61') ~ (α60' -> [int]) - α60', L: 0 [([α59'] -> α61') ~ (α60' -> [int]), ([α59'] -> α61') :> α62', α62' :> (α60' -> [int])]], α60' <: int] 

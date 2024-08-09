@@ -1,0 +1,52 @@
+(*This benchmark tests the algorithm's ability to detect and report a level-0 error,
+ where a value of an incompatible type (bool) is passed as an argument to a function expecting a different type (int).*)
+ let add x y = x + y ;;
+ let main () = add true 3 ;; 
+ //│ [ERROR] Type `bool` does not match `int`
+ //│ 
+ //│	(bool) ---> (?a)  ---> (int)
+ //│ 
+ //│ ◉ (bool) comes from
+ //│ │  - l.4  let main () = add true 3 ;; 
+ //││                           ^^^^
+ //│ │  - l.3  let add x y = x + y ;;
+ //││                 ^
+ //│ ▼ 
+ //│ ◉ (?a)  is assumed for
+ //│ │  - l.3  let add x y = x + y ;;
+ //││                 ^
+ //│ │  - l.3  let add x y = x + y ;;
+ //││                       ^
+ //│ ▼ 
+ //│ ◉ (int) comes from
+ //│    - lib. let (^): string -> string -> string
+ //│                    ^^^
+ //│ add: int -> int -> int
+ //│ main: () -> int
+ //│ U max: 1, total: 6
+ //│ UERR 1 errors
+ //│ L: 0 [bool ~ int, bool <: α44', α44' <: int] 
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) ---> (?a) ---> (int)
+//│ 
+//│ ◉ (bool) comes from
+//│ │  - l.4   let main () = add true 3 ;; 
+//│ │                            ^^^^
+//│ │  - l.3   let add x y = x + y ;;
+//│ │                  ^
+//│ ▼ 
+//│ ◉ (?a) is assumed for
+//│ │  - l.3   let add x y = x + y ;;
+//│ │                  ^
+//│ │  - l.3   let add x y = x + y ;;
+//│ │                        ^
+//│ ▼ 
+//│ ◉ (int) comes from
+//│    - lib. let (^): string -> string -> string
+//│ [ERROR] Type `bool` does not match `int`
+//│ 
+//│         (bool) ---> (?a) ---> (int)
+//│ 
+//│ ◉ (bool) comes from
+
