@@ -1,0 +1,26 @@
+let show_major (s: string) (x:string) =
+  (* Dummy implementation that returns a string indicating major version *)
+  "Major version: " ^ s ^ x;;
+//│ show_major: string -> string -> string
+
+let appInfo = ("My Application", "1.5");;
+//│ appInfo: (string, string,)
+
+
+
+let printer = print_string (show_major "string" );;
+//│ [ERROR] Type `string -> string` does not match `string`
+//│ 
+//│	(string -> string) ---> (string)
+//│ 
+//│ ◉ (string -> string) comes from
+//│ │  - l.1  let show_major (s: string) (x:string) =
+//│ │           (* Dummy implementation that returns a string indicating major version *) ...
+//│ │  - l.9  let printer = print_string (show_major "string" );;
+//│ ▼ 
+//│ ◉ (string) comes from
+//│    - lib. let print_int: int -> unit
+//│ printer: unit
+//│ U max: 1, total: 2
+//│ UERR 1 errors
+//│ L: 0 [(string -> [string]) ~ string, (string -> [string]) <: string] 

@@ -1,91 +1,29 @@
-(*This benchmark tests that the algorithm does not report any errors for a simple, well-typed program.*)
-let parse_version (s: string): string = 
+let parse_version (s: string) = 
   (* Dummy implementation that just returns the input string *)
   s;;
-//│ /!\ Parse error: Expected "=":1:135, found ": string =" at l.2:30: let parse_version (s: string): string = 
+//│ parse_version: string -> string
 
-let show_major (s: string): string =
+let show_major (s: string) =
   (* Dummy implementation that returns a string indicating major version *)
   "Major version: " ^ s;;
-//│ /!\ Parse error: Expected "=":1:27, found ": string =" at l.6:27: let show_major (s: string): string =
+//│ show_major: string -> string
 
 let appInfo = ("My Application", "1.5");;
 //│ appInfo: (string, string,)
 
-let () = print_int 4;;
-//│ /!\ Parse error: Expected (filter | "(" ~ ocamlOps):1:5, found "() = print" at l.12:5: let () = print_int 4;;
-
-ignore (5);appInfo;;
-//│ [ERROR] Type `err` does not match `int -> _`
-//│ 
-//│	(err) ---> (int -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 ignore (5);appInfo;;
-//││         ^^^^^^
-//│ ▼ 
-//│ ◉ (int -> _) comes from
-//│    - l.14 ignore (5);appInfo;;
-//│          ^^^^^^
-//│ ╔══[ERROR] identifier not found: ignore
-//│ ║  
-//│ ║  l.14:	ignore (5);appInfo;;
-//│ ╙──     	^^^^^^
-//│ res: 'a
-//│ res: (string, string,)
-//│ U max: 1, total: 1
-//│ UERR 1 errors
-//│ L: 0 [err ~ ([int] -> α42), err <: ([int] -> α42)]
+let printer = print_int 4;;
+//│ printer: unit
 
 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.16 let process (name, vers) = name ^ show_major (parse_version vers);;
-//││                                                       ^^^^^^^^^^^^^
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.16 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│                                                        ^^^^^^^^^^^^^
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.16 let process (name, vers) = name ^ show_major (parse_version vers);;
-//││                                           ^^^^^^^^^^
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.16 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│                                            ^^^^^^^^^^
-//│ ╔══[ERROR] identifier not found: show_major
-//│ ║  
-//│ ║  l.16:	let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ ╙──     	                                  ^^^^^^^^^^
-//│ ╔══[ERROR] identifier not found: parse_version
-//│ ║  
-//│ ║  l.16:	let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ ╙──     	                                              ^^^^^^^^^^^^^
-//│ process: (string, 'a,) -> string
-//│ U max: 1, total: 4
-//│ UERR 2 errors
-//│ L: 0 [err ~ (α45' -> α46'), err <: (α45' -> α46')]
-//│ L: 0 [err ~ ([α44'] -> α45'), err <: ([α44'] -> α45')]
+//│ process: (string, string,) -> string
 
-let () = print_int (String.length (process appInfo));;
-//│ /!\ Parse error: Expected (filter | "(" ~ ocamlOps):1:5, found "() = print" at l.18:5: let () = print_int (String.length (process appInfo));;
-
-let () = print_int 5;;
-//│ /!\ Parse error: Expected (filter | "(" ~ ocamlOps):1:5, found "() = print" at l.20:5: let () = print_int 5;;
+let printer2 = print_string (process appInfo);;
+//│ printer2: unit
 
 let x = 5;;
 //│ x: int
 
 if x < 4 then
-  let () = print_int 5 in
-  print_string "hello"
-else
-  print_string "world";;
-//│ /!\ Parse error: Expected "else":3:23, found ";else\n  pr" at l.26:23:   print_string "hello" 
+  let y = print_int 5 in
+  print_string "hello" else
+  print_string "world";; 

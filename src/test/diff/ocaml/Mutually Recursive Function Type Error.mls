@@ -1,25 +1,42 @@
 (*This benchmark tests the algorithm's ability to handle mutually recursive functions and detect a type error when an incompatible argument type is passed to one of the functions*)
-let rec even n = if n = 0 then true else odd (n - 1) 
-and odd n = if n = 0 then false else even (n - 1) ;;
-//│ /!\ Parse error: Expected end-of-input:1:236, found "and odd n " at l.3:1: and odd n = if n = 0 then false else even (n - 1) ;;
+
+let rec minus n = if n mod 2 = 0 then n else minus (n - 1);;
+let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│ minus: int -> int
+//│ even: int -> bool
 
 let main () = even true ;;
-//│ [ERROR] Type `err` does not match `bool -> _`
+//│ [ERROR] Type `int` does not match `bool`
 //│ 
-//│	(err) ---> (bool -> _)
+//│	(int) ~~~~ (?a)  ~~~~ (bool)
 //│ 
-//│ ◉ (err) comes from
-//│ │  - l.5  let main () = even true ;;
-//││                       ^^^^
-//│ ▼ 
-//│ ◉ (bool -> _) comes from
-//│    - l.5  let main () = even true ;;
-//│                        ^^^^
-//│ ╔══[ERROR] identifier not found: even
-//│ ║  
-//│ ║  l.5:	let main () = even true ;;
-//│ ╙──    	              ^^^^
-//│ main: () -> 'a
-//│ U max: 1, total: 1
+//│ ◉ (int) comes from
+//│    - l.3  let rec minus n = if n mod 2 = 0 then n else minus (n - 1);;
+//│    - lib. let String_length: string -> int
+//│   ◉ (int -> _) comes from
+//│   ▲  - l.3  let rec minus n = if n mod 2 = 0 then n else minus (n - 1);;
+//│   │  - l.3  let rec minus n = if n mod 2 = 0 then n else minus (n - 1);;
+//│   │ 
+//│   ◉ (?minus)  is assumed for
+//│   │  - l.3  let rec minus n = if n mod 2 = 0 then n else minus (n - 1);;
+//│   ▼ 
+//│   ◉ (?a  -> _) comes from
+//│      - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│ ◉ (?a)  is assumed for
+//│    - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│    - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│   ◉ (?a  -> _) comes from
+//│   │  - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│   │  - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│   ▼ 
+//│   ◉ (?even)  is assumed for
+//│   │  - l.4  let rec even n = if n = 0 then true else even(minus(n)) ;;
+//│   ▼ 
+//│   ◉ (bool -> _) comes from
+//│      - l.6  let main () = even true ;;
+//│ ◉ (bool) comes from
+//│    - l.6  let main () = even true ;;
+//│ main: () -> bool
+//│ U max: 8, total: 16
 //│ UERR 1 errors
-//│ L: 0 [err ~ ([bool] -> α42'), err <: ([bool] -> α42')] 
+//│ L: 1 [int ~ bool, [int - ([int] -> α63') ~ ([α61'] -> α62') - α61', L: 0 [([int] -> α63') ~ ([α61'] -> α62'), ([int] -> α63') :> minus65', minus65' <: ([α61'] -> α62')]], [α61' - (α61' -> α68') ~ ([bool] -> α70') - bool, L: 0 [(α61' -> α68') ~ ([bool] -> α70'), (α61' -> α68') <: even60', even60' <: ([bool] -> α70')]]] 

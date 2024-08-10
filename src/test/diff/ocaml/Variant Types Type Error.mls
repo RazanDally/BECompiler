@@ -1,93 +1,45 @@
 (*This benchmark tests the algorithm's ability to handle variant types and detect a type error when an incompatible type is used in the construction or pattern matching of a variant type*)
 
-type expr =
-  | Const of int
-  | Add of expr * expr
-  | Bool of bool
-//│ /!\ Parse error: Expected (ocamlConstructorDecl.rep(1) | (("(" | Index ~ tyName | Index ~ ocamlTyParam).rep(1) | "(").rep(1)):2:3, found "| Const of" at l.4:3:   | Const of int
+type 'a expr =
+   Const of int
+  | Add of 'a expr * 'a expr
+  | Bool of bool;;
+//│ Defined type alias expr[±'a]
+//│ Defined class Const
+//│ Defined class Add[±'a]
+//│ Defined class Bool
+//│ ╔══[WARNING] Type definition expr has bivariant type parameters:
+//│ ║  
+//│ ║  l.3:	type 'a expr =
+//│ ╟── 'a is irrelevant and may be removed
+//│ ║  l.3:	type 'a expr =
+//│ ╔══[WARNING] Type definition Add has bivariant type parameters:
+//│ ║  
+//│ ║  l.5:	  | Add of 'a expr * 'a expr
+//│ ╟── 'a is irrelevant and may be removed
+//│ ║  l.5:	  | Add of 'a expr * 'a expr
+//│ Const: int -> expr[anything]
+//│ Add: (expr[anything], expr[anything],) -> expr[anything]
+//│ Bool: bool -> expr[anything]
 
-let eval expr =
+let rec eval expr =
   match expr with
   | Const n -> n
   | Add (e1, e2) -> eval e1 + eval e2
   | Bool b -> if b then 1 else 0 ;;
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Const does not have adt data
-//│ 	at: hmloc.utils.package$.lastWords(package.scala:185)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$31(Typer.scala:517)
-//│ 	at: scala.Option.getOrElse(Option.scala:201)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$9(Typer.scala:517)
-//│ 	at: scala.collection.immutable.List.foreach(List.scala:333)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:440)
-//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
-//│ 	at: hmloc.Typer.typeTerm(Typer.scala:597)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:373)
-//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
+//│ eval: expr[anything] -> int
 
-let main () = eval (Add (Const 1, Bool true)) ;;
-//│ [ERROR] Type `err` does not match `(_ * _) -> _`
+let main () = eval (Add (Const 1, Bool 2)) ;;
+//│ [ERROR] Type `int` does not match `bool`
 //│ 
-//│	(err) ---> ((_ * _) -> _)
+//│	(int) ---> (bool)
 //│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                             ^^^
+//│ ◉ (int) comes from
+//│ │  - l.14 let main () = eval (Add (Const 1, Bool 2)) ;;
 //│ ▼ 
-//│ ◉ ((_ * _) -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                              ^^^
-//│ [ERROR] Type `err` does not match `bool -> _`
-//│ 
-//│	(err) ---> (bool -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                                           ^^^^
-//│ ▼ 
-//│ ◉ (bool -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                                            ^^^^
-//│ [ERROR] Type `err` does not match `int -> _`
-//│ 
-//│	(err) ---> (int -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                                  ^^^^^
-//│ ▼ 
-//│ ◉ (int -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                                   ^^^^^
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                       ^^^^
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                        ^^^^
-//│ ╔══[ERROR] identifier not found: eval
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	              ^^^^
-//│ ╔══[ERROR] identifier not found: Add
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                    ^^^
-//│ ╔══[ERROR] identifier not found: Const
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                         ^^^^^
-//│ ╔══[ERROR] identifier not found: Bool
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                                  ^^^^
-//│ main: () -> 'a
-//│ U max: 1, total: 4
-//│ UERR 4 errors
-//│ L: 0 [err ~ ([int] -> α44'), err <: ([int] -> α44')]
-//│ L: 0 [err ~ (([α44'], [α45'],) -> α46'), err <: (([α44'], [α45'],) -> α46')]
-//│ L: 0 [err ~ ([bool] -> α45'), err <: ([bool] -> α45')]
-//│ L: 0 [err ~ (α46' -> α47'), err <: (α46' -> α47')] 
+//│ ◉ (bool) comes from
+//│    - l.6    | Bool of bool;;
+//│ main: () -> int
+//│ U max: 5, total: 24
+//│ UERR 1 errors
+//│ L: 0 [int ~ bool, int <: bool] 

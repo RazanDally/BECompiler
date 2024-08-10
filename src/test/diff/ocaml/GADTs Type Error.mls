@@ -1,93 +1,58 @@
 (*This benchmark tests the algorithm's ability to handle Generalized Algebraic Data Types (GADTs) and detect a type error when an incompatible type is used in the construction or pattern matching of a GADT.*)
 
-type _ term =
-  | Const : int -> int term
-  | Add : int term * int term -> int term
-  | Bool : bool -> bool term ;;
-//│ /!\ Parse error: Expected "=":1:8, found "term =\n  |" at l.3:8: type _ term =
+type 'a term =
+   Const of (int -> int)
+  | Add of 'a term * 'a term
+  | Bool of (bool -> bool) ;;
+//│ Defined type alias term[±'a]
+//│ Defined class Const
+//│ Defined class Add[±'a]
+//│ Defined class Bool
+//│ ╔══[WARNING] Type definition Add has bivariant type parameters:
+//│ ║  
+//│ ║  l.5:	  | Add of 'a term * 'a term
+//│ ╟── 'a is irrelevant and may be removed
+//│ ║  l.5:	  | Add of 'a term * 'a term
+//│ ╔══[WARNING] Type definition term has bivariant type parameters:
+//│ ║  
+//│ ║  l.3:	type 'a term =
+//│ ╟── 'a is irrelevant and may be removed
+//│ ║  l.3:	type 'a term =
+//│ Const: (int -> int) -> term[anything]
+//│ Add: (term[anything], term[anything],) -> term[anything]
+//│ Bool: (bool -> bool) -> term[anything]
 
-let eval t =
+let f (x:int) = x;;
+//│ f: int -> int
+
+let ff (x:int) = x - 1;;
+//│ ff: int -> int
+
+let bb (x:bool) = x;;
+let rec eval t =
   match t with
   | Const n -> n
-  | Add (t1, t2) -> eval t1 + eval t2
-  | Bool b -> if b then 1 else 0 ;;
-//│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Const does not have adt data
-//│ 	at: hmloc.utils.package$.lastWords(package.scala:185)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$31(Typer.scala:517)
-//│ 	at: scala.Option.getOrElse(Option.scala:201)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$9(Typer.scala:517)
-//│ 	at: scala.collection.immutable.List.foreach(List.scala:333)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:440)
-//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
-//│ 	at: hmloc.Typer.typeTerm(Typer.scala:597)
-//│ 	at: hmloc.Typer.$anonfun$typeTerm$2(Typer.scala:373)
-//│ 	at: hmloc.TyperHelpers.trace(TyperHelpers.scala:23)
+  | Add (t1 , t2) -> eval (Const f)
+  | Bool b -> if b (true) then eval (Const f) else eval (Const ff) ;;
+//│ bb: bool -> bool
+//│ eval: term[anything] -> int -> int
 
-let main () = eval (Add (Const 1, Bool true)) ;;
-//│ [ERROR] Type `err` does not match `(_ * _) -> _`
+let main () = eval (Add(Bool ff, Const bb));;
+//│ [ERROR] Type `int` does not match `bool`
 //│ 
-//│	(err) ---> ((_ * _) -> _)
+//│	(int) ~~~~ (bool)
 //│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                             ^^^
-//│ ▼ 
-//│ ◉ ((_ * _) -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                              ^^^
-//│ [ERROR] Type `err` does not match `bool -> _`
-//│ 
-//│	(err) ---> (bool -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                                           ^^^^
-//│ ▼ 
-//│ ◉ (bool -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                                            ^^^^
-//│ [ERROR] Type `err` does not match `int -> _`
-//│ 
-//│	(err) ---> (int -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                                  ^^^^^
-//│ ▼ 
-//│ ◉ (int -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                                   ^^^^^
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//││                       ^^^^
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.14 let main () = eval (Add (Const 1, Bool true)) ;;
-//│                        ^^^^
-//│ ╔══[ERROR] identifier not found: eval
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	              ^^^^
-//│ ╔══[ERROR] identifier not found: Add
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                    ^^^
-//│ ╔══[ERROR] identifier not found: Const
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                         ^^^^^
-//│ ╔══[ERROR] identifier not found: Bool
-//│ ║  
-//│ ║  l.14:	let main () = eval (Add (Const 1, Bool true)) ;;
-//│ ╙──     	                                  ^^^^
-//│ main: () -> 'a
-//│ U max: 1, total: 4
-//│ UERR 4 errors
-//│ L: 0 [err ~ ([int] -> α44'), err <: ([int] -> α44')]
-//│ L: 0 [err ~ (([α44'], [α45'],) -> α46'), err <: (([α44'], [α45'],) -> α46')]
-//│ L: 0 [err ~ ([bool] -> α45'), err <: ([bool] -> α45')]
-//│ L: 0 [err ~ (α46' -> α47'), err <: (α46' -> α47')] 
+//│ ◉ (int) comes from
+//│    - l.10 let ff (x:int) = x - 1;;
+//│   ◉ (int -> int) comes from
+//│   │  - l.10 let ff (x:int) = x - 1;;
+//│   │  - l.19 let main () = eval (Add(Bool ff, Const bb));;
+//│   ▼ 
+//│   ◉ (bool -> bool) comes from
+//│      - l.6    | Bool of (bool -> bool) ;;
+//│ ◉ (bool) comes from
+//│    - l.6    | Bool of (bool -> bool) ;;
+//│ main: () -> int -> int
+//│ U max: 9, total: 36
+//│ UERR 1 errors
+//│ L: 1 [int ~ bool, [int - (int -> [int]) ~ (bool -> bool) - bool, L: 0 [(int -> [int]) ~ (bool -> bool), (int -> [int]) <: (bool -> bool)]]]

@@ -1,5 +1,5 @@
 (*This benchmark tests the algorithm's ability to handle nested pattern matching and detect a type error when an incompatible type is used in the construction of a data structure pattern*)
-type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
+type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ Defined type alias binary_tree[+'a]
 //│ Defined class Leaf[+'a]
 //│ Defined class Node[+'a]
@@ -12,168 +12,122 @@ let rec sum tree =
   | Node (left, right) ->
     match left, right with
     | Leaf l, Leaf r -> l + r
-    | Node _, Node _ -> sum left + sum right
-    | _, _ -> 0
+    | Node _, Node _ -> sum left + sum right;;
 //│ [ERROR] Type `err` does not match `int`
 //│ 
 //│	(err) ---> (int)
 //│ 
 //│ ◉ (err) comes from
 //│ │  - l.9      | Leaf l, Leaf r -> l + r
-//││                                 ^
 //│ ▼ 
 //│ ◉ (int) comes from
 //│    - lib. let (^): string -> string -> string
-//│                    ^^^
 //│ [ERROR] Type `err` does not match `_ binary_tree * _ binary_tree`
 //│ 
 //│	(err) ---> (_ binary_tree * _ binary_tree)
 //│ 
 //│ ◉ (err) comes from
-//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//││                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ▼ 
 //│ ◉ (_ binary_tree * _ binary_tree) comes from
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ [ERROR] Type `err` does not match `_ binary_tree * _ binary_tree`
 //│ 
 //│	(err) ---> (_ binary_tree * _ binary_tree)
 //│ 
 //│ ◉ (err) comes from
-//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//││                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ▼ 
 //│ ◉ (_ binary_tree * _ binary_tree) comes from
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ [ERROR] Type `int` does not match `err`
 //│ 
 //│	(int) ---> (?f)  ---> (?d)  <--- (?a)  ~~~~ (?c)  ~~~~ (?a)  ~~~~ (?e)  <--- (err)
 //│ 
 //│ ◉ (int) comes from
 //│ │  - lib. let (^): string -> string -> string
-//│ │                                ^^^
 //│ │  - l.9      | Leaf l, Leaf r -> l + r
-//││                                 ^^^^^
 //│ │  - l.8      match left, right with
-//││             ^^^^^^^^^^^^^^^^^^^^^^
 //│ │             | Leaf l, Leaf r -> l + r ...
-//│ │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ▼ 
 //│ ◉ (?f)  is assumed for
 //│ │  - l.8      match left, right with
-//││             ^^^^^^^^^^^^^^^^^^^^^^
 //│ │             | Leaf l, Leaf r -> l + r ...
-//│ │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ │  - l.5    match tree with
-//││           ^^^^^^^^^^^^^^^
 //│ │           | Leaf n -> n ...
-//│ │           ^^^^^^^^^^^^^^^^^
 //│ ▼ 
 //│ ◉ (?d)  is assumed for
 //│ ▲  - l.5    match tree with
-//││           ^^^^^^^^^^^^^^^
 //│ │           | Leaf n -> n ...
-//│ │           ^^^^^^^^^^^^^^^^^
 //│ │  - l.6    | Leaf n -> n
-//││                       ^
 //│ │ 
 //│ ◉ (?a)  is assumed for
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│               ^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│     │  - l.8      match left, right with
-//│    │                   ^^^^^^^^^^^
 //│     ▼ 
 //│     ◉ (?b  * ?g) comes from
 //│        - l.9      | Leaf l, Leaf r -> l + r
-//│                    ^^^^^^^^^^^^^^
 //│   ◉ (?g)  is assumed for
 //│   │  - l.9      | Leaf l, Leaf r -> l + r
-//│  │                       ^^^^^^
 //│   ▼ 
 //│   ◉ (?c  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?c)  is assumed for
 //│   ◉ (?c  binary_tree) comes from
-//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│  │                               ^^^^^^^^^^
+//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   │ 
 //│   ◉ (?g)  is assumed for
 //│      - l.9      | Leaf l, Leaf r -> l + r
-//│                          ^^^^^^
 //│     ◉ (?b  * ?g) comes from
 //│     ▲  - l.9      | Leaf l, Leaf r -> l + r
-//│    │               ^^^^^^^^^^^^^^
 //│     │ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│        - l.8      match left, right with
-//│                        ^^^^^^^^^^^
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│               ^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                      ^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                       ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│     │  - l.8      match left, right with
-//│    │                   ^^^^^^^^^^^
 //│     ▼ 
 //│     ◉ (?b  * ?g) comes from
 //│        - l.9      | Leaf l, Leaf r -> l + r
-//│                    ^^^^^^^^^^^^^^
 //│   ◉ (?b)  is assumed for
 //│   │  - l.9      | Leaf l, Leaf r -> l + r
-//│  │               ^^^^^^
 //│   ▼ 
 //│   ◉ (?e  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?e)  is assumed for
 //│ ▲  - l.9      | Leaf l, Leaf r -> l + r
-//││                    ^
 //│ │ 
 //│ ◉ (err) comes from
 //│    - l.9      | Leaf l, Leaf r -> l + r
-//│                     ^
 //│ ╔══[ERROR] identifier not found: l
 //│ ║  
 //│ ║  l.9:	    | Leaf l, Leaf r -> l + r
-//│ ╙──    	           ^
 //│ ╔══[ERROR] identifier not found: r
 //│ ║  
 //│ ║  l.9:	    | Leaf l, Leaf r -> l + r
-//│ ╙──    	                   ^
 //│ ╔══[ERROR] identifier not found: l
 //│ ║  
 //│ ║  l.9:	    | Leaf l, Leaf r -> l + r
-//│ ╙──    	                        ^
 //│ ╔══[ERROR] identifier not found: r
 //│ ║  
 //│ ║  l.9:	    | Leaf l, Leaf r -> l + r
-//│ ╙──    	                            ^
 //│ ╔══[ERROR] Widlcard in expression position.
 //│ ║  
-//│ ║  l.10:	    | Node _, Node _ -> sum left + sum right
-//│ ╙──     	           ^
+//│ ║  l.10:	    | Node _, Node _ -> sum left + sum right;;
 //│ ╔══[ERROR] Widlcard in expression position.
 //│ ║  
-//│ ║  l.10:	    | Node _, Node _ -> sum left + sum right
-//│ ╙──     	                   ^
+//│ ║  l.10:	    | Node _, Node _ -> sum left + sum right;;
 //│ sum: binary_tree['a] -> 'a
 //│   where
 //│     'a = int, err
@@ -190,308 +144,213 @@ let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│	(int) ---> (?c)  ~~~~ (?a)  ~~~~ (?b)  <--- (bool)
 //│ 
 //│ ◉ (int) comes from
-//│ │  - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//││                                                  ^^
+//│ │  - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ ▼ 
 //│ ◉ (?c)  is assumed for
-//│    - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                                   ^^
+//│    - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   ◉ (?c  binary_tree) comes from
-//│      - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                                ^^^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?b  binary_tree * ?c binary_tree) comes from
-//│     │  - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│    │                                 ^^^^^^^^^^^^^^^^^^^^
+//│     │  - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│     ▼ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
-//│        - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│        - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
 //│   ◉ (?a  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                       ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
-//│     ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│    │                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     │ 
 //│     ◉ (?b  binary_tree * ?c binary_tree) comes from
-//│        - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                      ^^^^^^^^^^^^^^^^^^^^
+//│        - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   ◉ (?b  binary_tree) comes from
-//│      - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                     ^^^^^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?b)  is assumed for
-//│ ▲  - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//││                                       ^^^^
+//│ ▲  - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ │ 
 //│ ◉ (bool) comes from
-//│    - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                        ^^^^
+//│    - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ [ERROR] Type `err` does not match `int`
 //│ 
 //│	(err) ---> (?c)  ~~~~ (?a)  ~~~~ (?g)  ~~~~ (?a)  ---> (?e)  ~~~~ (?d)  ~~~~ (?e)  <--- (?h)  <--- (int)
 //│ 
 //│ ◉ (err) comes from
 //│ │  - l.9      | Leaf l, Leaf r -> l + r
-//││                    ^
 //│ ▼ 
 //│ ◉ (?c)  is assumed for
 //│    - l.9      | Leaf l, Leaf r -> l + r
-//│                     ^
 //│   ◉ (?c  binary_tree) comes from
-//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│  │                               ^^^^^^^^^^
+//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   │ 
 //│   ◉ (?b)  is assumed for
 //│      - l.9      | Leaf l, Leaf r -> l + r
-//│                  ^^^^^^
 //│     ◉ (?b  * ?f) comes from
 //│     ▲  - l.9      | Leaf l, Leaf r -> l + r
-//│    │               ^^^^^^^^^^^^^^
 //│     │ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│        - l.8      match left, right with
-//│                        ^^^^^^^^^^^
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                      ^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                       ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│               ^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│     │  - l.8      match left, right with
-//│    │                   ^^^^^^^^^^^
 //│     ▼ 
 //│     ◉ (?b  * ?f) comes from
 //│        - l.9      | Leaf l, Leaf r -> l + r
-//│                    ^^^^^^^^^^^^^^
 //│   ◉ (?f)  is assumed for
 //│   │  - l.9      | Leaf l, Leaf r -> l + r
-//│  │                       ^^^^^^
 //│   ▼ 
 //│   ◉ (?g  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?g)  is assumed for
 //│   ◉ (?g  binary_tree) comes from
-//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│  │                               ^^^^^^^^^^
+//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   │ 
 //│   ◉ (?f)  is assumed for
 //│      - l.9      | Leaf l, Leaf r -> l + r
-//│                          ^^^^^^
 //│     ◉ (?b  * ?f) comes from
 //│     ▲  - l.9      | Leaf l, Leaf r -> l + r
-//│    │               ^^^^^^^^^^^^^^
 //│     │ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│        - l.8      match left, right with
-//│                        ^^^^^^^^^^^
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
-//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//││              ^^
+//│ │  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ │  - l.6    | Leaf n -> n
-//││                       ^
 //│ ▼ 
 //│ ◉ (?e)  is assumed for
 //│    - l.5    match tree with
-//│            ^^^^^^^^^^^^^^^
 //│             | Leaf n -> n ...
-//│             ^^^^^^^^^^^^^^^^^
 //│   ◉ (_ -> ?e) comes from
 //│   │  - l.4  let rec sum tree =
-//│  │                     ^^^^^^
 //│   │           match tree with ...
-//│   │           ^^^^^^^^^^^^^^^^^^^
 //│   │  - l.4  let rec sum tree =
-//│  │                 ^^^
 //│   ▼ 
 //│   ◉ (?sum)  is assumed for
 //│   │  - l.4  let rec sum tree =
-//│  │                 ^^^
 //│   ▼ 
 //│   ◉ (_ binary_tree -> ?d) comes from
-//│      - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                          ^^^
+//│      - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ ◉ (?d)  is assumed for
-//│    - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│    - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   ◉ (_ binary_tree -> ?d) comes from
-//│   ▲  - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│  │                       ^^^
+//│   ▲  - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   │  - l.4  let rec sum tree =
-//│  │                 ^^^
 //│   │ 
 //│   ◉ (?sum)  is assumed for
 //│   ▲  - l.4  let rec sum tree =
-//│  │                 ^^^
 //│   │ 
 //│   ◉ (_ -> ?e) comes from
 //│      - l.4  let rec sum tree =
-//│                        ^^^^^^
 //│	match tree with ...
-//│               ^^^^^^^^^^^^^^^^^^^
 //│ ◉ (?e)  is assumed for
 //│ ▲  - l.5    match tree with
-//││           ^^^^^^^^^^^^^^^
 //│ │           | Leaf n -> n ...
-//│ │           ^^^^^^^^^^^^^^^^^
 //│ │  - l.8      match left, right with
-//││             ^^^^^^^^^^^^^^^^^^^^^^
 //│ │             | Leaf l, Leaf r -> l + r ...
-//│ │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ │ 
 //│ ◉ (?h)  is assumed for
 //│ ▲  - l.8      match left, right with
-//││             ^^^^^^^^^^^^^^^^^^^^^^
 //│ │             | Leaf l, Leaf r -> l + r ...
-//│ │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ │  - l.9      | Leaf l, Leaf r -> l + r
-//││                                 ^^^^^
 //│ │ 
 //│ ◉ (int) comes from
 //│    - lib. let (^): string -> string -> string
-//│                                  ^^^
 //│ [ERROR] Type `err` does not match `bool`
 //│ 
 //│	(err) ---> (?c)  ~~~~ (?a)  ~~~~ (?g)  ~~~~ (?a)  ~~~~ (?f)  ~~~~ (?d)  <--- (bool)
 //│ 
 //│ ◉ (err) comes from
 //│ │  - l.9      | Leaf l, Leaf r -> l + r
-//││                    ^
 //│ ▼ 
 //│ ◉ (?c)  is assumed for
 //│    - l.9      | Leaf l, Leaf r -> l + r
-//│                     ^
 //│   ◉ (?c  binary_tree) comes from
-//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│  │                               ^^^^^^^^^^
+//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   │ 
 //│   ◉ (?b)  is assumed for
 //│      - l.9      | Leaf l, Leaf r -> l + r
-//│                  ^^^^^^
 //│     ◉ (?b  * ?e) comes from
 //│     ▲  - l.9      | Leaf l, Leaf r -> l + r
-//│    │               ^^^^^^^^^^^^^^
 //│     │ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│        - l.8      match left, right with
-//│                        ^^^^^^^^^^^
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                      ^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                       ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│               ^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│     │  - l.8      match left, right with
-//│    │                   ^^^^^^^^^^^
 //│     ▼ 
 //│     ◉ (?b  * ?e) comes from
 //│        - l.9      | Leaf l, Leaf r -> l + r
-//│                    ^^^^^^^^^^^^^^
 //│   ◉ (?e)  is assumed for
 //│   │  - l.9      | Leaf l, Leaf r -> l + r
-//│  │                       ^^^^^^
 //│   ▼ 
 //│   ◉ (?g  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?g)  is assumed for
 //│   ◉ (?g  binary_tree) comes from
-//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│  │                               ^^^^^^^^^^
+//│   ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   │ 
 //│   ◉ (?e)  is assumed for
 //│      - l.9      | Leaf l, Leaf r -> l + r
-//│                          ^^^^^^
 //│     ◉ (?b  * ?e) comes from
 //│     ▲  - l.9      | Leaf l, Leaf r -> l + r
-//│    │               ^^^^^^^^^^^^^^
 //│     │ 
 //│     ◉ (?a  binary_tree * ?a binary_tree) comes from
 //│        - l.8      match left, right with
-//│                        ^^^^^^^^^^^
 //│   ◉ (?a  binary_tree) comes from
 //│      - l.8      match left, right with
-//│                            ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?a)  is assumed for
-//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│               ^^
+//│    - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│   ◉ (?a  binary_tree) comes from
-//│      - l.10     | Node _, Node _ -> sum left + sum right
-//│                                                   ^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                                        ^^^^^^^^^^^^^^
+//│      - l.10     | Node _, Node _ -> sum left + sum right;;
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?a  binary_tree -> _) comes from
-//│     ▲  - l.10     | Node _, Node _ -> sum left + sum right
-//│    │                                            ^^^
+//│     ▲  - l.10     | Node _, Node _ -> sum left + sum right;;
 //│     │  - l.4  let rec sum tree =
-//│    │                 ^^^
 //│     │ 
 //│     ◉ (?sum)  is assumed for
 //│     │  - l.4  let rec sum tree =
-//│    │                 ^^^
 //│     ▼ 
 //│     ◉ (?f  binary_tree -> _) comes from
-//│        - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                            ^^^
+//│        - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   ◉ (?f  binary_tree) comes from
-//│      - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│      - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?f)  is assumed for
 //│   ◉ (?f  binary_tree) comes from
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                                       ^^^^^^^^^^^^^^
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     ◉ (?f  binary_tree * ?f binary_tree) comes from
-//│     ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│    │                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│     ▲  - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│     │ 
 //│     ◉ (?d  binary_tree * _ binary_tree) comes from
-//│        - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                      ^^^^^^^^^^^^^^^^^^^^
+//│        - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│   ◉ (?d  binary_tree) comes from
-//│      - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                     ^^^^^^^^^
-//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of 'a binary_tree * 'a binary_tree ;;
-//│                                  ^^^^^^^^^^
+//│      - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
+//│      - l.2  type 'a binary_tree = Leaf of 'a | Node of ('a binary_tree * 'a binary_tree) ;;
 //│ ◉ (?d)  is assumed for
-//│ ▲  - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//││                                       ^^^^
+//│ ▲  - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ │ 
 //│ ◉ (bool) comes from
-//│    - l.13 let main () = sum (Node (Leaf true, Leaf 42)) ;;
-//│                                        ^^^^
+//│    - l.12 let main () = sum (Node (Leaf true, Leaf 42)) ;;
 //│ main: () -> 'a
 //│   where
 //│     'a = err, int

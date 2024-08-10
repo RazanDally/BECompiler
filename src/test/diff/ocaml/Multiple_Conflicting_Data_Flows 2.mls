@@ -1,0 +1,55 @@
+let apply f x = f x
+//│ apply: ('a -> 'b) -> 'a -> 'b
+
+let compose f g x = f (g x)
+//│ compose: ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+
+let curry f x y = f (x, y)
+//│ curry: (('a, 'b,) -> 'c) -> 'a -> 'b -> 'c
+
+let uncurry f (x, y) = f x y
+//│ uncurry: ('a -> 'b -> 'c) -> ('a, 'b,) -> 'c
+
+let rec fix f x = f (fix f) x ;;
+//│ fix: (('a -> 'b) -> 'a -> 'b) -> 'a -> 'b
+
+(* i want to write let main () where it has a typr error that comes from using the functions above and the error be deep*)
+
+let main () = 
+  let f = apply in
+  let g = compose in
+  let h = curry in
+  let i = uncurry in
+  let j = fix in
+  let k = f g in
+  let l = h i in
+  let m = j in
+  let n = k l in
+  let o = m n in
+  o ;;
+//│ [ERROR] Type `_ -> _` does not match `_ * _`
+//│ 
+//│	(_ -> _) <--- (?b)  ~~~~ (_ * _)
+//│ 
+//│ ◉ (_ -> _) comes from
+//│ ▲  - l.7  let uncurry f (x, y) = f x y
+//│ │ 
+//│ ◉ (?b)  is assumed for
+//│    - l.7  let uncurry f (x, y) = f x y
+//│   ◉ (?b  -> (_ * _) -> _) comes from
+//│   │  - l.7  let uncurry f (x, y) = f x y
+//│   │  - l.17   let i = uncurry in
+//│   │  - l.20   let l = h i in
+//│   │  - l.5  let curry f x y = f (x, y)
+//│   ▼ 
+//│   ◉ (?a)  is assumed for
+//│   │  - l.5  let curry f x y = f (x, y)
+//│   ▼ 
+//│   ◉ ((_ * _) -> _) comes from
+//│      - l.5  let curry f x y = f (x, y)
+//│ ◉ (_ * _) comes from
+//│    - l.5  let curry f x y = f (x, y)
+//│ main: () -> 'a -> 'b -> ('c, 'd,) -> 'e
+//│ U max: 5, total: 57
+//│ UERR 1 errors
+//│ L: 1 [([α101''] -> α102'') ~ ([[α97'']], [[α98'']],), ([α101''] -> α102'') :> α100'', [α100'' - (α100'' -> (([α101''], [α103''],) -> α104'')) ~ (([[α97'']], [[α98'']],) -> α99'') - ([[α97'']], [[α98'']],), L: 0 [(α100'' -> (([α101''], [α103''],) -> α104'')) ~ (([[α97'']], [[α98'']],) -> α99''), (α100'' -> (([α101''], [α103''],) -> α104'')) <: α96'', α96'' <: (([[α97'']], [[α98'']],) -> α99'')]]] 

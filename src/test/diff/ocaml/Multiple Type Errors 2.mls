@@ -1,59 +1,19 @@
- (* example 1 - tuple field types mismatch *)
- let parse_version (s: string): string = 
+(* example 1 - tuple field types mismatch *)
+let parse_version (s: string) = 
   (* Dummy implementation that just returns the input string *)
   s;;
-//│ /!\ Parse error: Expected "=":1:75, found ": string =" at l.2:30: let parse_version (s: string): string = 
+//│ parse_version: string -> string
 
-let show_major (s: string): string =
+let show_major (s: string) =
   (* Dummy implementation that returns a string indicating major version *)
   "Major version: " ^ s;;
-//│ /!\ Parse error: Expected "=":1:27, found ": string =" at l.6:27: let show_major (s: string): string =
+//│ show_major: string -> string
 
 let appInfo = ("My Application", 1.5);;
 //│ appInfo: (string, float,)
 
 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//││                                                       ^^^^^^^^^^^^^
-
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│                                                        ^^^^^^^^^^^^^
-
-//│ [ERROR] Type `err` does not match `_ -> _`
-//│ 
-//│	(err) ---> (_ -> _)
-//│ 
-//│ ◉ (err) comes from
-//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//││                                           ^^^^^^^^^^
-
-//│ ▼ 
-//│ ◉ (_ -> _) comes from
-//│    - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│                                            ^^^^^^^^^^
-
-//│ ╔══[ERROR] identifier not found: show_major
-//│ ║  
-//│ ║  l.12:	let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ ╙──     	                                  ^^^^^^^^^^
-
-//│ ╔══[ERROR] identifier not found: parse_version
-//│ ║  
-//│ ║  l.12:	let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ ╙──     	                                              ^^^^^^^^^^^^^
-
-//│ process: (string, 'a,) -> string
-//│ U max: 1, total: 4
-//│ UERR 2 errors
-//│ L: 0 [err ~ ([α43'] -> α44'), err <: ([α43'] -> α44')]
-//│ L: 0 [err ~ (α44' -> α45'), err <: (α44' -> α45')]
+//│ process: (string, string,) -> string
 
 5;appInfo;;
 let x = 5;;
@@ -62,9 +22,6 @@ let x = 5;;
 //│ x: int
 
 let test = process appInfo;;
-let test = process ("My Application", "1.5");;
-print_int 5;;
-let test = process ("My Application", "1.5");;
 let test = process appInfo2;;
 print_int x;;
 //│ [ERROR] Type `err` does not match `_ * _`
@@ -72,33 +29,43 @@ print_int x;;
 //│	(err) ---> (_ * _)
 //│ 
 //│ ◉ (err) comes from
-//│ │  - l.21 let test = process appInfo2;;
-//││                            ^^^^^^^^
-
+//│ │  - l.18 let test = process appInfo2;;
 //│ ▼ 
 //│ ◉ (_ * _) comes from
 //│    - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│                      ^^^^^^^^^^^^
-
-//│ test: string
-//│ test: string
+//│ [ERROR] Type `float` does not match `string`
+//│ 
+//│	(float) ~~~~ (?a)  ---> (string)
+//│ 
+//│ ◉ (float) comes from
+//│    - l.10 let appInfo = ("My Application", 1.5);;
+//│   ◉ (string * float) comes from
+//│   │  - l.10 let appInfo = ("My Application", 1.5);;
+//│   │  - l.17 let test = process appInfo;;
+//│   ▼ 
+//│   ◉ (_ * ?a) comes from
+//│      - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ ◉ (?a)  is assumed for
+//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ ▼ 
+//│ ◉ (string) comes from
+//│    - l.2  let parse_version (s: string) = 
 //│ test: string
 //│ ╔══[ERROR] identifier not found: appInfo2
 //│ ║  
-//│ ║  l.21:	let test = process appInfo2;;
-//│ ╙──     	                   ^^^^^^^^
-
+//│ ║  l.18:	let test = process appInfo2;;
 //│ test: string
-//│ U max: 2, total: 12
-//│ UERR 1 errors
-//│ L: 0 [err ~ ([α52'], [α53'],), err <: ([α52'], [α53'],)]
+//│ U max: 2, total: 7
+//│ UERR 2 errors
+//│ L: 1 [float ~ string, [float - ([[string]], [[float]],) ~ ([α47'], [α48'],) - α48', L: 0 [([[string]], [[float]],) ~ ([α47'], [α48'],), ([[string]], [[float]],) <: ([α47'], [α48'],)]], α48' <: string]
+//│ L: 0 [err ~ ([α49'], [α50'],), err <: ([α49'], [α50'],)]
 
-let () = print_int 5;;
-//│ /!\ Parse error: Expected (filter | "(" ~ ocamlOps):1:5, found "() = print" at l.24:5: let () = print_int 5;;
+let tr = print_int 5;;
+//│ tr: unit
 
 if x < 4 then
-  let () = print_int 5 
-  print_string "hello"
-else
+  let tt = print_int 5
+  print_string "hello" else
   print_string "world";;
-//│ /!\ Parse error: Expected "in":3:23, found ";else\n  pr" at l.28:23:   print_string "hello"
+//│ /!\ Parse error: Expected (Index ~ ocamlWithAsc | ascribableTerm):2:3, found "let tt = p" at l.24:3:   let tt = print_int 5
