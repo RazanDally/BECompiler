@@ -26,36 +26,36 @@ print_int x;;
 //│ │                            ^^^^^^^^
 //│ ▼ 
 //│ ◉ (_ * _) comes from
-//│    - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│    - l.-4 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│                       ^^^^^^^^^^^^
 //│ [ERROR] Type `float` does not match `string`
 //│ 
 //│         (float) ~~~~ (?a) ---> (string)
 //│ 
 //│ ◉ (float) comes from
-//│    - l.-11let appInfo = ("My Application", 1.5);;
+//│    - l.-6 let appInfo = ("My Application", 1.5);;
 //│                                            ^^^
 //│   ◉ (string * float) comes from
-//│   │  - l.-11let appInfo = ("My Application", 1.5);;
+//│   │  - l.-6 let appInfo = ("My Application", 1.5);;
 //│   │                       ^^^^^^^^^^^^^^^^^^^^^^^
 //│   │  - l.1  let test = process appInfo;;
 //│   │                            ^^^^^^^
 //│   ▼ 
 //│   ◉ (_ * ?a) comes from
-//│      - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│      - l.-4 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│                         ^^^^^^^^^^^^
 //│ ◉ (?a) is assumed for
-//│ │  - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ │  - l.-4 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│ │                            ^^^^
-//│ │  - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ │  - l.-4 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│ │                                                                     ^^^^
 //│ ▼ 
 //│ ◉ (string) comes from
-//│    - l.-21let parse_version (s: string) = 
+//│    - l.-14let parse_version (s: string) = 
 //│                                 ^^^^^^
 //│ ╔══[ERROR] identifier not found: appInfo2
 //│ ║  
-//│ ║  l.25:	let test = process appInfo2;;
+//│ ║  l.18:	let test = process appInfo2;;
 //│ ╙──     	                   ^^^^^^^^
 //│ U max: 2, total: 7
 //│ UERR 2 errors
