@@ -2,24 +2,17 @@
 let parse_version (s: string) = 
   (* Dummy implementation that just returns the input string *)
   s;;
-//│ parse_version: string -> string
 
 let show_major (s: string) =
   (* Dummy implementation that returns a string indicating major version *)
   "Major version: " ^ s;;
-//│ show_major: string -> string
 
 let appInfo = ("My Application", 1.5);;
-//│ appInfo: (string, float,)
 
 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ process: (string, string,) -> string
 
 5;appInfo;;
 let x = 5;;
-//│ res: int
-//│ res: (string, float,)
-//│ x: int
 
 let test = process appInfo;;
 let test = process appInfo2;;
@@ -60,12 +53,10 @@ print_int x;;
 //│ ◉ (string) comes from
 //│    - l.-21let parse_version (s: string) = 
 //│                                 ^^^^^^
-//│ test: string
 //│ ╔══[ERROR] identifier not found: appInfo2
 //│ ║  
 //│ ║  l.25:	let test = process appInfo2;;
 //│ ╙──     	                   ^^^^^^^^
-//│ test: string
 //│ U max: 2, total: 7
 //│ UERR 2 errors
 //│ L: 1 [float ~ string, [float - ([[string]], [[float]],) ~ ([α47'], [α48'],) - α48', L: 0 [([[string]], [[float]],) ~ ([α47'], [α48'],), ([[string]], [[float]],) <: ([α47'], [α48'],)]], α48' <: string]
@@ -74,10 +65,8 @@ print_int x;;
 //│	(float) ~~~~ (?a)  ---> (string)
 
 let tr = print_int 5;;
-//│ tr: unit
 
 if x < 4 then
   let tt = print_int 5
   print_string "hello" else
   print_string "world";;
-//│ /!\ Parse error: Expected (Index ~ ocamlWithAsc | ascribableTerm):2:3, found "let tt = p" at l.80:3:   let tt = print_int 5
