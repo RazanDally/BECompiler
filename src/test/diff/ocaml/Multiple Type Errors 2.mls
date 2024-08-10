@@ -26,40 +26,52 @@ let test = process appInfo2;;
 print_int x;;
 //│ [ERROR] Type `err` does not match `_ * _`
 //│ 
-//│	(err) ---> (_ * _)
+//│         (err) ---> (_ * _)
 //│ 
 //│ ◉ (err) comes from
-//│ │  - l.18 let test = process appInfo2;;
+//│ │  - l.2  let test = process appInfo2;;
+//│ │                            ^^^^^^^^
 //│ ▼ 
 //│ ◉ (_ * _) comes from
-//│    - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│    - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│                       ^^^^^^^^^^^^
 //│ [ERROR] Type `float` does not match `string`
 //│ 
-//│	(float) ~~~~ (?a)  ---> (string)
+//│         (float) ~~~~ (?a) ---> (string)
 //│ 
 //│ ◉ (float) comes from
-//│    - l.10 let appInfo = ("My Application", 1.5);;
+//│    - l.-11let appInfo = ("My Application", 1.5);;
+//│                                            ^^^
 //│   ◉ (string * float) comes from
-//│   │  - l.10 let appInfo = ("My Application", 1.5);;
-//│   │  - l.17 let test = process appInfo;;
+//│   │  - l.-11let appInfo = ("My Application", 1.5);;
+//│   │                       ^^^^^^^^^^^^^^^^^^^^^^^
+//│   │  - l.1  let test = process appInfo;;
+//│   │                            ^^^^^^^
 //│   ▼ 
 //│   ◉ (_ * ?a) comes from
-//│      - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ ◉ (?a)  is assumed for
-//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
-//│ │  - l.12 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│      - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│                         ^^^^^^^^^^^^
+//│ ◉ (?a) is assumed for
+//│ │  - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ │                            ^^^^
+//│ │  - l.-8 let process (name, vers) = name ^ show_major (parse_version vers);;
+//│ │                                                                     ^^^^
 //│ ▼ 
 //│ ◉ (string) comes from
-//│    - l.2  let parse_version (s: string) = 
+//│    - l.-21let parse_version (s: string) = 
+//│                                 ^^^^^^
 //│ test: string
 //│ ╔══[ERROR] identifier not found: appInfo2
 //│ ║  
-//│ ║  l.18:	let test = process appInfo2;;
+//│ ║  l.25:	let test = process appInfo2;;
+//│ ╙──     	                   ^^^^^^^^
 //│ test: string
 //│ U max: 2, total: 7
 //│ UERR 2 errors
 //│ L: 1 [float ~ string, [float - ([[string]], [[float]],) ~ ([α47'], [α48'],) - α48', L: 0 [([[string]], [[float]],) ~ ([α47'], [α48'],), ([[string]], [[float]],) <: ([α47'], [α48'],)]], α48' <: string]
 //│ L: 0 [err ~ ([α49'], [α50'],), err <: ([α49'], [α50'],)]
+//│	(err) ---> (_ * _)
+//│	(float) ~~~~ (?a)  ---> (string)
 
 let tr = print_int 5;;
 //│ tr: unit
@@ -68,4 +80,4 @@ if x < 4 then
   let tt = print_int 5
   print_string "hello" else
   print_string "world";;
-//│ /!\ Parse error: Expected (Index ~ ocamlWithAsc | ascribableTerm):2:3, found "let tt = p" at l.24:3:   let tt = print_int 5
+//│ /!\ Parse error: Expected (Index ~ ocamlWithAsc | ascribableTerm):2:3, found "let tt = p" at l.68:3:   let tt = print_int 5
