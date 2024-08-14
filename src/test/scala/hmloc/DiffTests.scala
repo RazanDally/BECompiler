@@ -43,6 +43,45 @@ class DiffTests
     }
   }
 
+  def checkAndReplaceUnderscore(filePath: String): String = {
+  // Read the file
+  val lines = scala.io.Source.fromFile(filePath).getLines().toList
+
+  // Collect all variable names in the file
+  val variableNames = mutable.Set[String]()
+  val variablePattern = """\blet\s+(\w+)""".r
+
+  lines.foreach { line =>
+    variablePattern.findAllIn(line).matchData.foreach(m => variableNames += m.group(1))
+  }
+
+  // Function to generate a new unique variable name
+  def generateUniqueVarName(existingNames: mutable.Set[String]): String = {
+    var newVarName = "newVar"
+    var counter = 1
+    // Continue generating names until a unique one is found
+    while (existingNames.contains(newVarName)) {
+      newVarName = s"newVar$counter"
+      counter += 1
+    }
+    existingNames += newVarName
+    newVarName
+  }
+
+  // Replace each `let _` with a unique variable name
+  val modifiedLines = lines.map { line =>
+    if (line.contains("let _")) {
+      val uniqueVarName = generateUniqueVarName(variableNames)
+      line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
+    } else {
+      line
+    }
+  }
+
+    return modifiedLines.mkString("\n")
+
+}
+
   files.foreach { file =>
         val basePath = file.segments.drop(dir.segmentCount).toList.init
         val testName = basePath.map(_ + "/").mkString + file.baseName
@@ -57,7 +96,7 @@ class DiffTests
 
     val beginTime = System.nanoTime()
     var separator = "\r\n"
-    val fileContents = os.read(file)
+    val fileContents = checkAndReplaceUnderscore(file.toString)
 
     if(!fileContents.contains('\r')){
       separator = "\n"

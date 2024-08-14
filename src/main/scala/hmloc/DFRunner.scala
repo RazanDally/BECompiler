@@ -7,12 +7,15 @@ import fastparse.Parsed.Success
 import scala.collection.mutable
 import scala.collection.mutable.{Map => MutMap}
 import os.Path
+import scala.io.Source
+import java.io.PrintWriter
 
 import hmloc.utils._
 import shorthands._
 import ModeDefaults._
 import TestHelperFuncs._
 import TestHelperConsts._
+
 
 //create an object that will run the DFRunner
 object DFRunner{
@@ -35,6 +38,45 @@ object DFRunner{
 
   def runGivenPath(filePath: Path): String = runFile(filePath)
 
+  def checkAndReplaceUnderscore(filePath: String): String = {
+  // Read the file
+  val lines = scala.io.Source.fromFile(filePath).getLines().toList
+
+  // Collect all variable names in the file
+  val variableNames = mutable.Set[String]()
+  val variablePattern = """\blet\s+(\w+)""".r
+
+  lines.foreach { line =>
+    variablePattern.findAllIn(line).matchData.foreach(m => variableNames += m.group(1))
+  }
+
+  // Function to generate a new unique variable name
+  def generateUniqueVarName(existingNames: mutable.Set[String]): String = {
+    var newVarName = "newVar"
+    var counter = 1
+    // Continue generating names until a unique one is found
+    while (existingNames.contains(newVarName)) {
+      newVarName = s"newVar$counter"
+      counter += 1
+    }
+    existingNames += newVarName
+    newVarName
+  }
+
+  // Replace each `let _` with a unique variable name
+  val modifiedLines = lines.map { line =>
+    if (line.contains("let _")) {
+      val uniqueVarName = generateUniqueVarName(variableNames)
+      line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
+    } else {
+      line
+    }
+  }
+
+    return modifiedLines.mkString("\n")
+
+}
+
   def runFile(filePath: Path, nonTest: Boolean = false): String = {
     val file: Path = filePath
     var result = ""
@@ -47,7 +89,9 @@ object DFRunner{
 
     val testName = file.baseName
 
-    val fileContents = os.read(file)
+    val fileContents = checkAndReplaceUnderscore(filePath.toString)
+
+
     if(!fileContents.contains('\r')){
       separator = "\n"
     }

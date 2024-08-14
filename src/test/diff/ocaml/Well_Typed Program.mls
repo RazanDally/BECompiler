@@ -11,17 +11,24 @@ let show_major (s: string) =
 let appInfo = ("My Application", "1.5");;
 //│ appInfo: (string, string,)
 
-let printer = print_int 4;;
-//│ printer: unit
+let newVar = print_int 4;;
+//│ newVar: unit
 
 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│ process: (string, string,) -> string
 
-let printer2 = print_string (process appInfo);;
-//│ printer2: unit
+let newVar1 = print_string (process appInfo);;
+//│ newVar1: unit
 
 let x = 5;;
 //│ x: int
+
+let newVar2 = print_int x;;
+let newVar3 = print_int 3;;
+let newVar4 = print_int 4;;
+//│ newVar2: unit
+//│ newVar3: unit
+//│ newVar4: unit
 
 if x < 4 then
   let y = print_int 5 in
