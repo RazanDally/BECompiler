@@ -17,18 +17,18 @@ let newVar = print_int 4;;
 let process (name, vers) = name ^ show_major (parse_version vers);;
 //│ process: (string, string,) -> string
 
-let newVar1 = print_string (process appInfo);;
-//│ newVar1: unit
+let _ = print_string (process appInfo);;
+//│ - : unit
 
 let x = 5;;
 //│ x: int
 
-let newVar2 = print_int x;;
-let newVar3 = print_int 3;;
-let newVar4 = print_int 4;;
-//│ newVar2: unit
-//│ newVar3: unit
-//│ newVar4: unit
+let _ = print_int x;;
+let () = print_int 3;;
+let _ = print_int 4;;
+//│ - : unit
+//│ - : unit
+//│ - : unit
 
 if x < 4 then
   let y = print_int 5 in

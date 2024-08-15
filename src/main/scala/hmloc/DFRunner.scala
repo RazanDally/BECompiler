@@ -19,7 +19,8 @@ import TestHelperConsts._
 
 //create an object that will run the DFRunner
 object DFRunner{
-
+  val variableNamesUnderScore = mutable.Set[String]()
+  val variableNamesParanthesis = mutable.Set[String]()
   private val pwd = os.pwd
   private val dir = pwd/"src"/"test"/"diff"
   private val libPath = dir/"ocaml"/"OcamlLibrary.mls"
@@ -63,15 +64,20 @@ object DFRunner{
     newVarName
   }
 
-  // Replace each `let _` with a unique variable name
-  val modifiedLines = lines.map { line =>
-    if (line.contains("let _")) {
-      val uniqueVarName = generateUniqueVarName(variableNames)
-      line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
-    } else {
-      line
-    }
+  // Replace each 'let _' 'let()' with a unique variable name and save the variable names
+val modifiedLines = lines.map { line =>
+  if (line.contains("let _")) {
+    val uniqueVarName = generateUniqueVarName(variableNames)
+    variableNamesUnderScore += uniqueVarName
+    line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
+  } else if (line.contains("let ()")) {
+    val uniqueVarName = generateUniqueVarName(variableNames)
+    variableNamesParanthesis += uniqueVarName
+    line.replaceAll("""\blet\s+\(\)""", s"let $uniqueVarName")
+  } else {
+    line
   }
+}
 
     return modifiedLines.mkString("\n")
 
@@ -527,7 +533,28 @@ object DFRunner{
     val testFailed = failures.nonEmpty || unmergedChanges.nonEmpty
     result = strw.toString
 
-    //return result
-    result
+    // replace the variable names back to _ and () after running the file
+    val lines = result.split(separator).toList
+    val modifiedLines = lines.map { line =>
+      var modifiedLine = line
+      if (variableNamesUnderScore.nonEmpty) {
+        variableNamesUnderScore.foreach { name =>
+          modifiedLine = modifiedLine.replaceAll(s"\\blet\\s+$name\\b", "let _")
+          modifiedLine = modifiedLine.replaceAll(name, "- ")
+
+        }
+      }
+      if (variableNamesParanthesis.nonEmpty) {
+        variableNamesParanthesis.foreach { name =>
+          modifiedLine = modifiedLine.replaceAll(s"\\blet\\s+$name\\b", "let ()")
+          modifiedLine = modifiedLine.replaceAll(name, "- ")
+
+        }
+      }
+      modifiedLine
+    }
+
+    return modifiedLines.mkString("\n")
+
   }
 }

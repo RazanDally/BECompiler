@@ -23,6 +23,9 @@ class DiffTests
   with TimeLimitedTests
 {
 
+  val variableNamesUnderScore = mutable.Set[String]()
+  val variableNamesParanthesis = mutable.Set[String]()
+
   private val inParallel = isInstanceOf[ParallelTestExecution]
   
   import DiffTests._
@@ -68,15 +71,20 @@ class DiffTests
     newVarName
   }
 
-  // Replace each `let _` with a unique variable name
+  // Replace each 'let _' 'let()' with a unique variable name and save the variable names
   val modifiedLines = lines.map { line =>
-    if (line.contains("let _")) {
-      val uniqueVarName = generateUniqueVarName(variableNames)
-      line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
-    } else {
-      line
-    }
+  if (line.contains("let _")) {
+    val uniqueVarName = generateUniqueVarName(variableNames)
+    variableNamesUnderScore += uniqueVarName
+    line.replaceAll("""\blet\s+_""", s"let $uniqueVarName")
+  } else if (line.contains("let ()")) {
+    val uniqueVarName = generateUniqueVarName(variableNames)
+    variableNamesParanthesis += uniqueVarName
+    line.replaceAll("""\blet\s+\(\)""", s"let $uniqueVarName")
+  } else {
+    line
   }
+}
 
     return modifiedLines.mkString("\n")
 
@@ -598,7 +606,30 @@ class DiffTests
     try rec(allLines, defaultMode) finally {
       out.close()
     }
-    checkTestResults(failures, unmergedChanges, beginTime, strw.toString, testStr,
+     // replace the variable names back to _ and () after running the file
+    var result = strw.toString
+    val lines = result.split(separator).toList
+    val modifiedLines = lines.map { line =>
+      var modifiedLine = line
+      if (variableNamesUnderScore.nonEmpty) {
+        variableNamesUnderScore.foreach { name =>
+          modifiedLine = modifiedLine.replaceAll(s"\\blet\\s+$name\\b", "let _")
+          modifiedLine = modifiedLine.replaceAll(name, "- ")
+
+        }
+      }
+      if (variableNamesParanthesis.nonEmpty) {
+        variableNamesParanthesis.foreach { name =>
+          modifiedLine = modifiedLine.replaceAll(s"\\blet\\s+$name\\b", "let ()")
+          modifiedLine = modifiedLine.replaceAll(name, "- ")
+
+        }
+      }
+      modifiedLine
+    }
+    result = modifiedLines.mkString(separator)
+    
+    checkTestResults(failures, unmergedChanges, beginTime, result, testStr,
       inParallel,file, fileContents, fail(_))
   }}
 }
