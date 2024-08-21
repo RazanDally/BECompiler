@@ -13,7 +13,6 @@ let uncurry f (x, y) = f x y
 let rec fix f x = f (fix f) x ;;
 //│ fix: (('a -> 'b) -> 'a -> 'b) -> 'a -> 'b
 
-(* i want to write let main () where it has a typr error that comes from using the functions above and the error be deep*)
 
 let main () = 
   let f = apply in
