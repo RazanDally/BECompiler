@@ -1,0 +1,83 @@
+ let process result shouldDouble =
+  if shouldDouble then
+    match result with
+    | Some n -> n * 2
+    | None -> "No value to double"
+  else result;;
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│	(string) ---> (?a)  <--- (int)
+//│ 
+//│ ◉ (string) comes from
+//│ │  - l.5      | None -> "No value to double"
+//│ │  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ │  - l.4      | Some n -> n * 2
+//│ │ 
+//│ ◉ (int) comes from
+//│    - lib. 
+//│ [ERROR] Type `_ option` does not match `int`
+//│ 
+//│	(_ option) <--- (?a)  ---> (?b)  <--- (?c)  <--- (int)
+//│ 
+//│ ◉ (_ option) comes from
+//│ ▲  - l.4      | Some n -> n * 2
+//│ │  - l.3      match result with
+//│ │  - l.1  let process result shouldDouble =
+//│ │ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.1  let process result shouldDouble =
+//│ │  - l.6    else result;;
+//│ │  - l.2    if shouldDouble then
+//│ │             match result with ...
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│ ▲  - l.2    if shouldDouble then
+//│ │             match result with ...
+//│ │  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ │ 
+//│ ◉ (?c)  is assumed for
+//│ ▲  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ │  - l.4      | Some n -> n * 2
+//│ │ 
+//│ ◉ (int) comes from
+//│    - lib. 
+//│ [ERROR] Type `_ option` does not match `string`
+//│ 
+//│	(_ option) <--- (?a)  ---> (?b)  <--- (?c)  <--- (string)
+//│ 
+//│ ◉ (_ option) comes from
+//│ ▲  - l.4      | Some n -> n * 2
+//│ │  - l.3      match result with
+//│ │  - l.1  let process result shouldDouble =
+//│ │ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.1  let process result shouldDouble =
+//│ │  - l.6    else result;;
+//│ │  - l.2    if shouldDouble then
+//│ │             match result with ...
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│ ▲  - l.2    if shouldDouble then
+//│ │             match result with ...
+//│ │  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ │ 
+//│ ◉ (?c)  is assumed for
+//│ ▲  - l.3      match result with
+//│ │             | Some n -> n * 2 ...
+//│ │ 
+//│ ◉ (string) comes from
+//│    - l.5      | None -> "No value to double"
+//│ process: option[int] -> bool -> option[int]
+//│ U max: 3, total: 15
+//│ UERR 3 errors
+//│ L: 0 [option['a46'] ~ string, option['a46'] :> α42', α42' <: α44', α44' :> α45', α45' :> string]
+//│ L: 0 [option['a46'] ~ int, option['a46'] :> α42', α42' <: α44', α44' :> α45', α45' :> int]
+//│ L: 0 [string ~ int, string <: α45', α45' :> int] 

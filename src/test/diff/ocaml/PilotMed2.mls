@@ -1,0 +1,156 @@
+(* This program modifies an optional input based on a flag.
+   It involves string operations and integer operations, leading to type errors. *)
+
+   let modify_outcome apply_transformation input =
+    if apply_transformation then
+      match input with
+      | Some value -> Some (value ^ "2")
+      | None -> None
+    else
+      match input with
+      | Some value -> value + 1
+      | None -> 0;;
+  
+  let process_inputs transformation_list input_list =
+    List.map2 modify_outcome transformation_list input_list;;
+  
+  let main () =
+    let transformation_list = [true; false; true] in
+    let input_list = [Some "5"; Some 2; None] in
+    process_inputs transformation_list input_list ;;
+  
+//│ [ERROR] Type `err` does not match `(_ -> _ -> _) -> _`
+//│ 
+//│	(err) ---> ((_ -> _ -> _) -> _)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.15     List.map2 modify_outcome transformation_list input_list;;
+//│ ▼ 
+//│ ◉ ((_ -> _ -> _) -> _) comes from
+//│    - l.15     List.map2 modify_outcome transformation_list input_list;;
+//│ [ERROR] Type `int` does not match `_ option`
+//│ 
+//│	(int) ---> (?a)  ---> (?b)  <--- (?c)  <--- (_ option)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - lib. let (^): string -> string -> string
+//│ │  - l.11       | Some value -> value + 1
+//│ │  - l.10       match input with
+//│ │	| Some value -> value + 1 ...
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.10       match input with
+//│ │	| Some value -> value + 1 ...
+//│ │  - l.5      if apply_transformation then
+//│ │	match input with ...
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│ ▲  - l.5      if apply_transformation then
+//│ │	match input with ...
+//│ │  - l.6        match input with
+//│ │               | Some value -> Some (value ^ "2") ...
+//│ │ 
+//│ ◉ (?c)  is assumed for
+//│ ▲  - l.6        match input with
+//│ │               | Some value -> Some (value ^ "2") ...
+//│ │  - l.7        | Some value -> Some (value ^ "2")
+//│ │ 
+//│ ◉ (_ option) comes from
+//│    - lib. type 'a option = None | Some of 'a
+//│ [ERROR] Type `int` does not match `_ option`
+//│ 
+//│	(int) ---> (?a)  ---> (?b)  <--- (?c)  <--- (_ option)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - lib. let (^): string -> string -> string
+//│ │  - l.11       | Some value -> value + 1
+//│ │  - l.10       match input with
+//│ │	| Some value -> value + 1 ...
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ │  - l.10       match input with
+//│ │	| Some value -> value + 1 ...
+//│ │  - l.5      if apply_transformation then
+//│ │	match input with ...
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│ ▲  - l.5      if apply_transformation then
+//│ │	match input with ...
+//│ │  - l.6        match input with
+//│ │               | Some value -> Some (value ^ "2") ...
+//│ │ 
+//│ ◉ (?c)  is assumed for
+//│ ▲  - l.6        match input with
+//│ │               | Some value -> Some (value ^ "2") ...
+//│ │  - l.8        | None -> None
+//│ │ 
+//│ ◉ (_ option) comes from
+//│    - lib. type 'a option = None | Some of 'a
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│	(string) <--- (?a 0) ~~~~ (?a)  ---> (int)
+//│ 
+//│ ◉ (string) comes from
+//│ ▲  - lib. let failwith: string -> 'a
+//│ │  - l.7        | Some value -> Some (value ^ "2")
+//│ │ 
+//│ ◉ (?a 0) is assumed for
+//│    - lib. type 'a option = None | Some of 'a
+//│   ◉ (?a 0 option) comes from
+//│   ▲  - l.7        | Some value -> Some (value ^ "2")
+//│   │  - l.6        match input with
+//│   │  - l.4     let modify_outcome apply_transformation input =
+//│   │ 
+//│   ◉ (?b)  is assumed for
+//│   │  - l.4     let modify_outcome apply_transformation input =
+//│   │  - l.10       match input with
+//│   ▼ 
+//│   ◉ (?a  option) comes from
+//│      - l.11       | Some value -> value + 1
+//│ ◉ (?a)  is assumed for
+//│ │  - lib. type 'a option = None | Some of 'a
+//│ │  - l.11       | Some value -> value + 1
+//│ ▼ 
+//│ ◉ (int) comes from
+//│    - lib. let (^): string -> string -> string
+//│ [ERROR] Type `int` does not match `string`
+//│ 
+//│	(int) ---> (?b)  ~~~~ (?a)  <--- (string)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.19     let input_list = [Some "5"; Some 2; None] in
+//│ ▼ 
+//│ ◉ (?b)  is assumed for
+//│    - l.19     let input_list = [Some "5"; Some 2; None] in
+//│   ◉ (?b  option) comes from
+//│      - l.19     let input_list = [Some "5"; Some 2; None] in
+//│      - lib. type 'a option = None | Some of 'a
+//│     ◉ (?b  option list) comes from
+//│     │  - l.19     let input_list = [Some "5"; Some 2; None] in
+//│     ▼ 
+//│     ◉ (?a  option list) comes from
+//│        - l.19     let input_list = [Some "5"; Some 2; None] in
+//│   ◉ (?a  option) comes from
+//│      - l.19     let input_list = [Some "5"; Some 2; None] in
+//│      - lib. type 'a option = None | Some of 'a
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.19     let input_list = [Some "5"; Some 2; None] in
+//│ │ 
+//│ ◉ (string) comes from
+//│    - l.19     let input_list = [Some "5"; Some 2; None] in
+//│ modify_outcome: bool -> option['a] -> 'b
+//│   where
+//│     'b = int, option[string]
+//│     'a = int, string
+//│ ╔══[ERROR] identifier not found: List.map2
+//│ ║  
+//│ ║  l.15:	    List.map2 modify_outcome transformation_list input_list;;
+//│ process_inputs: 'a -> 'b -> 'c
+//│ main: () -> 'a
+//│ U max: 3, total: 51
+//│ UERR 5 errors
+//│ L: 0 [err ~ ([(α56' -> (α57' -> α60'))] -> α65'), err <: ([(α56' -> (α57' -> α60'))] -> α65')]
+//│ L: 1 [string ~ int, string :> 'a46', ['a46' - option['a46'] ~ option['a50'] - 'a50', L: 0 [option['a46'] ~ option['a50'], option['a46'] :> α43', α43' <: option['a50']]], 'a50' <: int]
+//│ L: 2 [int ~ string, int <: α69'', [α69'' - option[α69''] ~ option[α68''] - α68'', L: 1 [option[α69''] ~ option[α68''], [option[α69''] - list[[option[α69'']]] ~ list[[option[α68'']]] - option[α68''], L: 0 [list[[option[α69'']]] ~ list[[option[α68'']]], list[[option[α69'']]] <: list[[option[α68'']]]]]]], α68'' :> string]
+//│ L: 0 [int ~ option[α48'], int <: α49', α49' <: α44', α44' :> α45', α45' :> option[α48']]
+//│ L: 0 [int ~ option[α47'], int <: α49', α49' <: α44', α44' :> α45', α45' :> option[α47']] 

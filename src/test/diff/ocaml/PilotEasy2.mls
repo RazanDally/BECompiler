@@ -1,0 +1,25 @@
+ let processValue value = match value with
+ | Some n -> n * 2
+ | None -> "Value is missing" ;;
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│	(string) ---> (?a)  <--- (int)
+//│ 
+//│ ◉ (string) comes from
+//│ │  - l.3   | None -> "Value is missing" ;;
+//│ │  - l.1  let processValue value = match value with
+//│ │          | Some n -> n * 2 ...
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.1  let processValue value = match value with
+//│ │          | Some n -> n * 2 ...
+//│ │  - l.2   | Some n -> n * 2
+//│ │ 
+//│ ◉ (int) comes from
+//│    - lib. 
+//│ processValue: option[int] -> 'a
+//│   where
+//│     'a = string, int
+//│ U max: 1, total: 6
+//│ UERR 1 errors
+//│ L: 0 [string ~ int, string <: α43', α43' :> int]

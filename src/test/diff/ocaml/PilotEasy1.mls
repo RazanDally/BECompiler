@@ -1,0 +1,20 @@
+let parseInt s = if s = "true" then 1 else "false";;
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│	(string) ---> (?a)  <--- (int)
+//│ 
+//│ ◉ (string) comes from
+//│ │  - l.1  let parseInt s = if s = "true" then 1 else "false";;
+//│ │  - l.1  let parseInt s = if s = "true" then 1 else "false";;
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.1  let parseInt s = if s = "true" then 1 else "false";;
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.1  let parseInt s = if s = "true" then 1 else "false";;
+//│ parseInt: string -> 'a
+//│   where
+//│     'a = string, int
+//│ U max: 1, total: 7
+//│ UERR 1 errors
+//│ L: 0 [string ~ int, string <: α44', α44' :> int]

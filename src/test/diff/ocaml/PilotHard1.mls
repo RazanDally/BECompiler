@@ -1,0 +1,229 @@
+(*This program processes two lists, one of floating-point numbers and one of boolean values, 
+  using functions that filter and combine the lists. The merge_lists function attempts to 
+  concatenate the results of processing these lists, leading to multiple type errors.*)
+
+  let rec filter_list pred lst =
+    match lst with
+    | [] -> []
+    | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+  
+  let rec combine_list op lst =
+    match lst with
+    | [] -> failwith "Empty list"
+    | [x] -> x
+    | x :: xs -> op x (combine_list op xs);;
+  
+  let merge_lists lst1 lst2 =
+    let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+    let filtered_lst2 = filter_list (fun x -> x) lst2 in
+    filtered_lst1 @ filtered_lst2;;
+  
+  let main () =
+    let float_list = [1.5; -2.0; 3.7; -0.5; 2.2] in
+    let bool_list = [true; false; true; true; false] in
+    merge_lists float_list bool_list;;
+//│ [ERROR] Type `bool` does not match `float`
+//│ 
+//│	(bool) <--- (?m)  ~~~~ (?p)  ~~~~ (?a)  ~~~~ (?a 1) ~~~~ (?o)  ~~~~ (?a 0) ~~~~ (?a 2) ~~~~ (?t)  ---> (?s)  <--- (float)
+//│ 
+//│ ◉ (bool) comes from
+//│ ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│ │ 
+//│ ◉ (?m)  is assumed for
+//│    - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ◉ (?a  -> ?m) comes from
+//│   ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │ 
+//│   ◉ (?r)  is assumed for
+//│      - l.5    let rec filter_list pred lst =
+//│     ◉ (?r  -> _ -> ?k) comes from
+//│     │  - l.5    let rec filter_list pred lst =
+//│     │             match lst with ...
+//│     │  - l.5    let rec filter_list pred lst =
+//│     ▼ 
+//│     ◉ (?filter _list0) is assumed for
+//│     │  - l.5    let rec filter_list pred lst =
+//│     ▼ 
+//│     ◉ ((?p  -> ?p) -> ?h) comes from
+//│        - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│   ◉ (?p  -> ?p) comes from
+//│      - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│ ◉ (?p)  is assumed for
+//│    - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│    - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│   ◉ (?p  -> ?p) comes from
+//│      - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│     ◉ ((?p  -> ?p) -> ?h) comes from
+//│     ▲  - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│     │  - l.5    let rec filter_list pred lst =
+//│     │ 
+//│     ◉ (?filter _list0) is assumed for
+//│     ▲  - l.5    let rec filter_list pred lst =
+//│     │ 
+//│     ◉ (?r  -> _ -> ?k) comes from
+//│        - l.5    let rec filter_list pred lst =
+//│	match lst with ...
+//│   ◉ (?r)  is assumed for
+//│   │  - l.5    let rec filter_list pred lst =
+//│   ▼ 
+//│   ◉ (?a  -> ?m) comes from
+//│      - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│ ◉ (?a)  is assumed for
+//│    - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ◉ (?a  list) comes from
+//│   │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ▼ 
+//│   ◉ (?g)  is assumed for
+//│   │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │  - l.6      match lst with
+//│   │             | [] -> [] ...
+//│   ▼ 
+//│   ◉ (?k)  is assumed for
+//│   ▲  - l.6      match lst with
+//│   │             | [] -> [] ...
+//│   │ 
+//│   ◉ (?a 1 list) comes from
+//│      - l.7      | [] -> []
+//│ ◉ (?a 1) is assumed for
+//│   ◉ (?a 1 list) comes from
+//│   │  - l.7      | [] -> []
+//│   ▼ 
+//│   ◉ (?k)  is assumed for
+//│      - l.6      match lst with
+//│	| [] -> [] ...
+//│     ◉ (_ -> ?k) comes from
+//│        - l.5    let rec filter_list pred lst =
+//│	match lst with ...
+//│       ◉ (?r  -> _ -> ?k) comes from
+//│       │  - l.5    let rec filter_list pred lst =
+//│       │             match lst with ...
+//│       │  - l.5    let rec filter_list pred lst =
+//│       ▼ 
+//│       ◉ (?filter _list0) is assumed for
+//│       │  - l.5    let rec filter_list pred lst =
+//│       ▼ 
+//│       ◉ ((?p  -> ?p) -> ?h) comes from
+//│          - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│     ◉ (?h)  is assumed for
+//│     │  - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│     ▼ 
+//│     ◉ (_ -> ?b) comes from
+//│        - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│   ◉ (?b)  is assumed for
+//│   │  - l.18     let filtered_lst2 = filter_list (fun x -> x) lst2 in
+//│   │  - l.19     filtered_lst1 @ filtered_lst2;;
+//│   ▼ 
+//│   ◉ (?o  list) comes from
+//│      - lib. let (!=): 'a -> 'a -> bool
+
+//│ ◉ (?o)  is assumed for
+//│   ◉ (?o  list) comes from
+//│   ▲  - lib. let (!=): 'a -> 'a -> bool
+//│   │  - l.19     filtered_lst1 @ filtered_lst2;;
+//│   │ 
+//│   ◉ (?e)  is assumed for
+//│      - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│     ◉ (_ -> ?e) comes from
+//│     ▲  - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│     │ 
+//│     ◉ (?i)  is assumed for
+//│        - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│       ◉ ((?t  -> bool) -> ?i) comes from
+//│       ▲  - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│       │  - l.5    let rec filter_list pred lst =
+//│       │ 
+//│       ◉ (?filter _list) is assumed for
+//│       ▲  - l.5    let rec filter_list pred lst =
+//│       │ 
+//│       ◉ (?l  -> _ -> ?n) comes from
+//│          - l.5    let rec filter_list pred lst =
+//│	match lst with ...
+//│     ◉ (_ -> ?n) comes from
+//│        - l.5    let rec filter_list pred lst =
+//│	match lst with ...
+//│   ◉ (?n)  is assumed for
+//│   ▲  - l.6      match lst with
+//│   │             | [] -> [] ...
+//│   │ 
+//│   ◉ (?a 0 list) comes from
+//│      - l.7      | [] -> []
+//│ ◉ (?a 0) is assumed for
+//│   ◉ (?a 0 list) comes from
+//│   │  - l.7      | [] -> []
+//│   │  - l.6      match lst with
+//│   │             | [] -> [] ...
+//│   ▼ 
+//│   ◉ (?n)  is assumed for
+//│   ▲  - l.6      match lst with
+//│   │             | [] -> [] ...
+//│   │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │ 
+//│   ◉ (?d)  is assumed for
+//│   ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │ 
+//│   ◉ (?f)  is assumed for
+//│      - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│     ◉ (?a 2 list -> ?f) comes from
+//│     ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│     │ 
+//│     ◉ (?c)  is assumed for
+//│        - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│       ◉ (?l  -> ?c) comes from
+//│       ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│       │  - l.5    let rec filter_list pred lst =
+//│       │ 
+//│       ◉ (?filter _list) is assumed for
+//│       │  - l.5    let rec filter_list pred lst =
+//│       ▼ 
+//│       ◉ (?l  -> ?q) comes from
+//│          - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│     ◉ (?q)  is assumed for
+//│     │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│     ▼ 
+//│     ◉ (?a 2 list -> ?j) comes from
+//│        - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ◉ (?j)  is assumed for
+//│   │  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ▼ 
+//│   ◉ (?a 2 list) comes from
+//│      - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│ ◉ (?a 2) is assumed for
+//│    - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   ◉ (?a 2 -> _) comes from
+//│   ▲  - l.8      | x :: xs -> if pred x then x :: (filter_list pred xs) else filter_list pred xs;;
+//│   │ 
+//│   ◉ (?l)  is assumed for
+//│      - l.5    let rec filter_list pred lst =
+//│     ◉ (?l  -> _ -> ?n) comes from
+//│     │  - l.5    let rec filter_list pred lst =
+//│     │             match lst with ...
+//│     │  - l.5    let rec filter_list pred lst =
+//│     ▼ 
+//│     ◉ (?filter _list) is assumed for
+//│     │  - l.5    let rec filter_list pred lst =
+//│     ▼ 
+//│     ◉ ((?t  -> bool) -> ?i) comes from
+//│        - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│   ◉ (?t  -> bool) comes from
+//│      - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│ ◉ (?t)  is assumed for
+//│ │  - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│ │  - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│ ▼ 
+//│ ◉ (?s)  is assumed for
+//│ ▲  - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│ │ 
+//│ ◉ (float) comes from
+//│    - l.17     let filtered_lst1 = filter_list (fun x -> x > 0.0) lst1 in
+//│ filter_list: ('a -> bool) -> list['a] -> list['a]
+//│ combine_list: ('a -> 'a -> 'b) -> list['a] -> 'b
+//│ merge_lists: list['a] -> list[bool] -> list[bool]
+//│   where
+//│     'a = bool, float
+//│ main: () -> list['a]
+//│   where
+//│     'a = bool, float
+//│ U max: 15, total: 292
+//│ UERR 1 errors
+//│ L: 3 [bool ~ float, bool :> α98', [α98' - (['a89'] -> α98') ~ (α99' -> [α99']) - α99', L: 1 [(['a89'] -> α98') ~ (α99' -> [α99']), (['a89'] -> α98') :> α88', [α88' - (α88' -> (α96' -> α93')) ~ ((α99' -> [α99']) -> α100') - (α99' -> [α99']), L: 0 [(α88' -> (α96' -> α93')) ~ ((α99' -> [α99']) -> α100'), (α88' -> (α96' -> α93')) <: filter_list87', filter_list87' <: ((α99' -> [α99']) -> α100')]]]], [α99' - (α99' -> [α99']) ~ (['a89'] -> α98') - 'a89', L: 1 [(α99' -> [α99']) ~ (['a89'] -> α98'), [(α99' -> [α99']) - ((α99' -> [α99']) -> α100') ~ (α88' -> (α96' -> α93')) - α88', L: 0 [((α99' -> [α99']) -> α100') ~ (α88' -> (α96' -> α93')), ((α99' -> [α99']) -> α100') :> filter_list87', filter_list87' :> (α88' -> (α96' -> α93'))]], α88' <: (['a89'] -> α98')]], ['a89' - list[['a89']] ~ list['a90'] - 'a90', L: 0 [list[['a89']] ~ list['a90'], list[['a89']] <: α91', α91' <: α93', α93' :> list['a90']]], ['a90' - list['a90'] ~ list[α102'] - α102', L: 2 [list['a90'] ~ list[α102'], list['a90'] <: α93', [α93' - (α96' -> α93') ~ ([α70'] -> α101') - α101', L: 1 [(α96' -> α93') ~ ([α70'] -> α101'), [(α96' -> α93') - (α88' -> (α96' -> α93')) ~ ((α99' -> [α99']) -> α100') - α100', L: 0 [(α88' -> (α96' -> α93')) ~ ((α99' -> [α99']) -> α100'), (α88' -> (α96' -> α93')) <: filter_list87', filter_list87' <: ((α99' -> [α99']) -> α100')]], α100' <: ([α70'] -> α101')]], α101' <: list[α102']]], [α102' - list[α102'] ~ list['a74'] - 'a74', L: 2 [list[α102'] ~ list['a74'], list[α102'] :> α86', [α86' - ([α69'] -> α86') ~ (α80' -> α77') - α77', L: 1 [([α69'] -> α86') ~ (α80' -> α77'), ([α69'] -> α86') :> α85', [α85' - ((α83' -> [bool]) -> α85') ~ (α72' -> (α80' -> α77')) - (α80' -> α77'), L: 0 [((α83' -> [bool]) -> α85') ~ (α72' -> (α80' -> α77')), ((α83' -> [bool]) -> α85') :> filter_list71', filter_list71' :> (α72' -> (α80' -> α77'))]]]], α77' :> list['a74']]], ['a74' - list['a74'] ~ list[['a73']] - 'a73', L: 2 [list['a74'] ~ list[['a73']], list['a74'] <: α77', α77' :> α75', α75' :> α76', [α76' - ([list['a73']] -> α76') ~ ([list['a73']] -> α78') - α78', L: 1 [([list['a73']] -> α76') ~ ([list['a73']] -> α78'), ([list['a73']] -> α76') :> α81', [α81' - ([α72'] -> α81') ~ ([α72'] -> α79') - α79', L: 0 [([α72'] -> α81') ~ ([α72'] -> α79'), ([α72'] -> α81') :> filter_list71', filter_list71' <: ([α72'] -> α79')]], α79' <: ([list['a73']] -> α78')]], α78' <: list[['a73']]]], ['a73' - (['a73'] -> α82') ~ (α83' -> [bool]) - α83', L: 1 [(['a73'] -> α82') ~ (α83' -> [bool]), (['a73'] -> α82') :> α72', [α72' - (α72' -> (α80' -> α77')) ~ ((α83' -> [bool]) -> α85') - (α83' -> [bool]), L: 0 [(α72' -> (α80' -> α77')) ~ ((α83' -> [bool]) -> α85'), (α72' -> (α80' -> α77')) <: filter_list71', filter_list71' <: ((α83' -> [bool]) -> α85')]]]], α83' <: α84', α84' :> float]

@@ -1,0 +1,237 @@
+ let rec map_list f lst =
+  match lst with
+  | [] -> []
+  | x :: xs -> (f x) :: (map_list f xs);;
+//│ map_list: ('a -> 'b) -> list['a] -> list['b]
+
+let rec sum_list lst =
+  match lst with
+  | [] -> 0
+  | x :: xs -> x + (sum_list xs);;
+//│ sum_list: list[int] -> int
+
+let process_lists lst1 lst2 =
+  let mapped_lst1 = map_list (fun x -> x + 1) lst1 in
+  let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+  let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+  sum1 + sum2;;
+//│ [ERROR] Type `err` does not match `int`
+//│ 
+//│	(err) ---> (int)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.15   sum1 + sum2;;
+//│ ▼ 
+//│ ◉ (int) comes from
+//│    - lib. let (^): string -> string -> string
+//│ [ERROR] Type `int` does not match `string`
+//│ 
+//│	(int) <--- (?a)  ~~~~ (?b)  ~~~~ (string)
+//│ 
+//│ ◉ (int) comes from
+//│ ▲  - lib. let (^): string -> string -> string
+//│ │ 
+//│ ◉ (?a)  is assumed for
+//│    - l.9    | x :: xs -> x + (sum_list xs);;
+//│   ◉ (?a  list) comes from
+//│      - l.9    | x :: xs -> x + (sum_list xs);;
+//│     ◉ (?a  list -> _) comes from
+//│     ▲  - l.9    | x :: xs -> x + (sum_list xs);;
+//│     │  - l.6  let rec sum_list lst =
+//│     │ 
+//│     ◉ (?sum _list) is assumed for
+//│     │  - l.6  let rec sum_list lst =
+//│     ▼ 
+//│     ◉ (?b  list -> _) comes from
+//│        - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│   ◉ (?b  list) comes from
+//│      - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│      - lib. 
+//│ ◉ (?b)  is assumed for
+//│   ◉ (_ -> ?b) comes from
+//│   ▲  - lib. 
+//│   │ 
+//│   ◉ (_ -> string) comes from
+//│      - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│ ◉ (string) comes from
+//│    - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│    - lib. let print_endline: string -> unit
+//│ [ERROR] Type `string` does not match `int`
+//│ 
+//│	(string) ~~~~ (?f)  ~~~~ (?a)  ~~~~ (?b)  ~~~~ (?g)  ---> (int)
+//│ 
+//│ ◉ (string) comes from
+//│    - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│    - lib. let failwith: string -> 'a
+//│   ◉ (_ -> string) comes from
+//│      - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     ◉ ((_ -> string) -> ?j) comes from
+//│     ▲  - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     │  - l.1  let rec map_list f lst =
+//│     │ 
+//│     ◉ (?map _list) is assumed for
+//│     ▲  - l.1  let rec map_list f lst =
+//│     │ 
+//│     ◉ (?h  -> _ -> ?e) comes from
+//│        - l.1  let rec map_list f lst =
+//│	match lst with ...
+//│   ◉ (?h)  is assumed for
+//│   │  - l.1  let rec map_list f lst =
+//│   ▼ 
+//│   ◉ (_ -> ?f) comes from
+//│      - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│ ◉ (?f)  is assumed for
+//│    - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│   ◉ (?f  list) comes from
+//│   │  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│   │  - l.2    match lst with
+//│   │           | [] -> [] ...
+//│   ▼ 
+//│   ◉ (?e)  is assumed for
+//│   ▲  - l.2    match lst with
+//│   │           | [] -> [] ...
+//│   │ 
+//│   ◉ (?a  list) comes from
+//│      - l.3    | [] -> []
+//│ ◉ (?a)  is assumed for
+//│   ◉ (?a  list) comes from
+//│   │  - l.3    | [] -> []
+//│   ▼ 
+//│   ◉ (?e)  is assumed for
+//│      - l.2    match lst with
+//│	| [] -> [] ...
+//│     ◉ (_ -> ?e) comes from
+//│        - l.1  let rec map_list f lst =
+//│	match lst with ...
+//│       ◉ (?h  -> _ -> ?e) comes from
+//│       │  - l.1  let rec map_list f lst =
+//│       │           match lst with ...
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ (?map _list) is assumed for
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ (?h  -> ?c) comes from
+//│          - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ◉ (?c)  is assumed for
+//│     │  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ▼ 
+//│     ◉ (_ list -> ?d) comes from
+//│        - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│   ◉ (?d)  is assumed for
+//│      - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ◉ (_ list -> ?d) comes from
+//│     ▲  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     │ 
+//│     ◉ (?c)  is assumed for
+//│        - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│       ◉ (?h  -> ?c) comes from
+//│       ▲  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│       │  - l.1  let rec map_list f lst =
+//│       │ 
+//│       ◉ (?map _list) is assumed for
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ ((_ -> string) -> ?j) comes from
+//│          - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     ◉ (?j)  is assumed for
+//│        - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│       ◉ ((_ -> string) -> ?j) comes from
+//│       ▲  - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│       │  - l.1  let rec map_list f lst =
+//│       │ 
+//│       ◉ (?map _list) is assumed for
+//│       ▲  - l.1  let rec map_list f lst =
+//│       │ 
+//│       ◉ (?h  -> _ -> ?e) comes from
+//│          - l.1  let rec map_list f lst =
+//│	match lst with ...
+//│     ◉ (_ -> ?e) comes from
+//│        - l.1  let rec map_list f lst =
+//│	match lst with ...
+//│   ◉ (?e)  is assumed for
+//│      - l.2    match lst with
+//│	| [] -> [] ...
+//│     ◉ (_ -> ?e) comes from
+//│        - l.1  let rec map_list f lst =
+//│	match lst with ...
+//│       ◉ (?h  -> _ -> ?e) comes from
+//│       │  - l.1  let rec map_list f lst =
+//│       │           match lst with ...
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ (?map _list) is assumed for
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ ((_ -> string) -> ?j) comes from
+//│          - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     ◉ (?j)  is assumed for
+//│        - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│       ◉ ((_ -> string) -> ?j) comes from
+//│       ▲  - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│       │  - l.1  let rec map_list f lst =
+//│       │ 
+//│       ◉ (?map _list) is assumed for
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ (?h  -> ?c) comes from
+//│          - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ◉ (?c)  is assumed for
+//│     │  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ▼ 
+//│     ◉ (_ list -> ?d) comes from
+//│        - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│   ◉ (?d)  is assumed for
+//│      - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     ◉ (_ list -> ?d) comes from
+//│     ▲  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│     │ 
+//│     ◉ (?c)  is assumed for
+//│        - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│       ◉ (?h  -> ?c) comes from
+//│       ▲  - l.4    | x :: xs -> (f x) :: (map_list f xs);;
+//│       │  - l.1  let rec map_list f lst =
+//│       │ 
+//│       ◉ (?map _list) is assumed for
+//│       │  - l.1  let rec map_list f lst =
+//│       ▼ 
+//│       ◉ ((_ -> string) -> ?j) comes from
+//│          - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     ◉ (?j)  is assumed for
+//│     │  - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│     ▼ 
+//│     ◉ (_ -> ?i) comes from
+//│        - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│   ◉ (?i)  is assumed for
+//│   │  - l.13   let mapped_lst2 = map_list (fun x -> x ^ "!") lst2 in  
+//│   │  - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│   ▼ 
+//│   ◉ (?b  list) comes from
+//│      - lib. 
+//│ ◉ (?b)  is assumed for
+//│   ◉ (?b  -> _) comes from
+//│   ▲  - lib. 
+//│   │ 
+//│   ◉ (?g  -> string) comes from
+//│      - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│ ◉ (?g)  is assumed for
+//│ │  - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│ │  - l.14   let sum2 = sum_list (List.map (fun x -> string_of_int x) mapped_lst2) in 
+//│ ▼ 
+//│ ◉ (int) comes from
+//│    - lib. let print_endline: string -> unit
+//│ ╔══[ERROR] identifier not found: sum1
+//│ ║  
+//│ ║  l.15:	  sum1 + sum2;;
+//│ process_lists: list['a] -> list['a0] -> int
+//│ U max: 7, total: 138
+//│ UERR 3 errors
+//│ L: 3 [string ~ int, [string - (α82' -> [string]) ~ (['a75'] -> α76') - α76', L: 1 [(α82' -> [string]) ~ (['a75'] -> α76'), [(α82' -> [string]) - ((α82' -> [string]) -> α83') ~ (α74' -> (α80' -> α78')) - α74', L: 0 [((α82' -> [string]) -> α83') ~ (α74' -> (α80' -> α78')), ((α82' -> [string]) -> α83') :> map_list73', map_list73' :> (α74' -> (α80' -> α78'))]], α74' <: (['a75'] -> α76')]], [α76' - list[α76'] ~ list['a77'] - 'a77', L: 0 [list[α76'] ~ list['a77'], list[α76'] <: α78', α78' :> list['a77']]], ['a77' - list['a77'] ~ list[α90'] - α90', L: 2 [list['a77'] ~ list[α90'], list['a77'] <: α78', [α78' - (α80' -> α78') ~ ([list['a75']] -> α79') - α79', L: 1 [(α80' -> α78') ~ ([list['a75']] -> α79'), [(α80' -> α78') - (α74' -> (α80' -> α78')) ~ ([α74'] -> α81') - α81', L: 0 [(α74' -> (α80' -> α78')) ~ ([α74'] -> α81'), (α74' -> (α80' -> α78')) <: map_list73', map_list73' <: ([α74'] -> α81')]], α81' <: ([list['a75']] -> α79')]], [α79' - ([list['a75']] -> α79') ~ (α80' -> α78') - α78', L: 1 [([list['a75']] -> α79') ~ (α80' -> α78'), ([list['a75']] -> α79') :> α81', [α81' - ([α74'] -> α81') ~ ((α82' -> [string]) -> α83') - α83', L: 0 [([α74'] -> α81') ~ ((α82' -> [string]) -> α83'), ([α74'] -> α81') :> map_list73', map_list73' <: ((α82' -> [string]) -> α83')]], [α83' - ((α82' -> [string]) -> α83') ~ (α74' -> (α80' -> α78')) - (α80' -> α78'), L: 0 [((α82' -> [string]) -> α83') ~ (α74' -> (α80' -> α78')), ((α82' -> [string]) -> α83') :> map_list73', map_list73' :> (α74' -> (α80' -> α78'))]]]], [α78' - (α80' -> α78') ~ ([list['a75']] -> α79') - α79', L: 1 [(α80' -> α78') ~ ([list['a75']] -> α79'), [(α80' -> α78') - (α74' -> (α80' -> α78')) ~ ((α82' -> [string]) -> α83') - α83', L: 0 [(α74' -> (α80' -> α78')) ~ ((α82' -> [string]) -> α83'), (α74' -> (α80' -> α78')) <: map_list73', map_list73' <: ((α82' -> [string]) -> α83')]], [α83' - ((α82' -> [string]) -> α83') ~ ([α74'] -> α81') - α81', L: 0 [((α82' -> [string]) -> α83') ~ ([α74'] -> α81'), ((α82' -> [string]) -> α83') :> map_list73', map_list73' <: ([α74'] -> α81')]], α81' <: ([list['a75']] -> α79')]], [α79' - ([list['a75']] -> α79') ~ ([α60'] -> α84') - α84', L: 1 [([list['a75']] -> α79') ~ ([α60'] -> α84'), ([list['a75']] -> α79') :> α81', [α81' - ([α74'] -> α81') ~ ((α82' -> [string]) -> α83') - α83', L: 0 [([α74'] -> α81') ~ ((α82' -> [string]) -> α83'), ([α74'] -> α81') :> map_list73', map_list73' <: ((α82' -> [string]) -> α83')]], α83' <: ([α60'] -> α84')]], α84' <: list[α90']]], [α90' - (α90' -> α91') ~ (α92' -> [string]) - α92', L: 0 [(α90' -> α91') ~ (α92' -> [string]), (α90' -> α91') :> (α92' -> [string])]], α92' <: int]
+//│ L: 2 [int ~ string, int :> 'a87'', ['a87'' - list['a87''] ~ list[α91'] - α91', L: 1 [list['a87''] ~ list[α91'], [list['a87''] - ([list['a87'']] -> α89'') ~ ([list[α91']] -> α93'') - list[α91'], L: 0 [([list['a87'']] -> α89'') ~ ([list[α91']] -> α93''), ([list['a87'']] -> α89'') :> sum_list85'', sum_list85'' <: ([list[α91']] -> α93'')]]]], [α91' - (α90' -> α91') ~ (α92' -> [string]) - string, L: 0 [(α90' -> α91') ~ (α92' -> [string]), (α90' -> α91') :> (α92' -> [string])]]]
+//│ L: 0 [err ~ int, err <: int]
+
+let main () =
+  let int_list = [1; 2; 3] in
+  let string_list = ["a"; "b"; "c"] in
+  process_lists int_list string_list;;
+//│ main: () -> int 
