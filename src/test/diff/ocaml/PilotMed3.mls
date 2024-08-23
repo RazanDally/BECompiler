@@ -1,0 +1,97 @@
+let rec compute_factorial value =
+  if value = 0.0 then 1.0 else value *. compute_factorial (value -. 1.0);;
+//│ compute_factorial: float -> float
+
+let rec evaluate_number number =
+  if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ [ERROR] Type `err` does not match `_ -> _`
+//│ 
+//│	(err) ---> (_ -> _)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ▼ 
+//│ ◉ (_ -> _) comes from
+//│    - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ [ERROR] Type `err` does not match `_ -> _`
+//│ 
+//│	(err) ---> (_ -> _)
+//│ 
+//│ ◉ (err) comes from
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ▼ 
+//│ ◉ (_ -> _) comes from
+//│    - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ [ERROR] Type `float` does not match `int`
+//│ 
+//│	(float) ---> (?a)  <--- (int)
+//│ 
+//│ ◉ (float) comes from
+//│ │  - lib. let List.map: ('a -> 'b) -> 'a list -> 'b list
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ │ 
+//│ ◉ (int) comes from
+//│    - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ╔══[ERROR] identifier not found: float_of_int
+//│ ║  
+//│ ║  l.5:	  if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ╔══[ERROR] identifier not found: float_of_int
+//│ ║  
+//│ ║  l.5:	  if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ evaluate_number: int -> 'a
+//│   where
+//│     'a = float, int
+//│ U max: 4, total: 26
+//│ UERR 3 errors
+//│ L: 0 [float ~ int, float <: α52', α52' :> int]
+//│ L: 0 [err ~ ([α50'] -> α53'), err <: ([α50'] -> α53')]
+//│ L: 0 [err ~ ([α50'] -> α59'), err <: ([α50'] -> α59')]
+
+let main () = evaluate_number 5;;
+//│ [ERROR] Type `int` does not match `float`
+//│ 
+//│	(int) ---> (?a)  ~~~~ (?b)  ~~~~ (?a)  <--- (float)
+//│ 
+//│ ◉ (int) comes from
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ▼ 
+//│ ◉ (?a)  is assumed for
+//│    - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│   ◉ (_ -> ?a) comes from
+//│   │  - l.4  let rec evaluate_number number =
+//│   │           if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│   │  - l.4  let rec evaluate_number number =
+//│   ▼ 
+//│   ◉ (?evaluate _number) is assumed for
+//│   │  - l.4  let rec evaluate_number number =
+//│   ▼ 
+//│   ◉ (int -> ?b) comes from
+//│      - l.7  let main () = evaluate_number 5;;
+//│ ◉ (?b)  is assumed for
+//│    - l.7  let main () = evaluate_number 5;;
+//│   ◉ (int -> ?b) comes from
+//│   ▲  - l.7  let main () = evaluate_number 5;;
+//│   │  - l.4  let rec evaluate_number number =
+//│   │ 
+//│   ◉ (?evaluate _number) is assumed for
+//│   ▲  - l.4  let rec evaluate_number number =
+//│   │ 
+//│   ◉ (_ -> ?a) comes from
+//│      - l.4  let rec evaluate_number number =
+//│	if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ ◉ (?a)  is assumed for
+//│ ▲  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ │  - l.5    if number = 0 then 1 else float_of_int number +. compute_factorial (float_of_int number);;
+//│ │ 
+//│ ◉ (float) comes from
+//│    - lib. let List.map: ('a -> 'b) -> 'a list -> 'b list
+//│ main: () -> 'a
+//│   where
+//│     'a = int, float
+//│ U max: 4, total: 12
+//│ UERR 1 errors
+//│ L: 1 [int ~ float, int <: α65', [α65' - (α63' -> α65') ~ ([int] -> α66') - α66', L: 0 [(α63' -> α65') ~ ([int] -> α66'), (α63' -> α65') <: evaluate_number62', evaluate_number62' <: ([int] -> α66')]], [α66' - ([int] -> α66') ~ (α63' -> α65') - α65', L: 0 [([int] -> α66') ~ (α63' -> α65'), ([int] -> α66') :> evaluate_number62', evaluate_number62' :> (α63' -> α65')]], α65' :> float]
