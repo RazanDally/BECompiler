@@ -13,185 +13,10 @@ import scala.collection.mutable.{Queue => MutQueue, Set => MutSet, Map => MutMap
  * 
  * The unification algorithm is formally described in the section 4 of the paper.
  */
-trait Unifier extends TyperDatatypes {
+trait Unifier extends TyperDatatypes with UnifierHelpers {
   self: Typer =>
-
   val cache: MutSet[(ST, ST)] = MutSet()
   var unifyMode: Bool = false
-
-  class UState(
-    cache: MutSet[(ST, ST, Int)] = MutSet(),
-    val queue: MutQueue[Unification] = MutQueue(),
-    val error: MutSet[Unification] = MutSet(),
-    // max queue length, total unifications solved
-  ) extends Iterator[Unification] {
-    var stats: (Int, Int) = (0, 0)
-    def enqueueUnification(u: Unification): Unit = if (!cached(u)) {
-      // TODO: fix this so that recursion can be stopped
-      if (u.level >= 4) {
-        println(s"U X ${u.a} ~ ${u.b}")
-        return
-      }
-      println(s"U Q ${u.a} ~ ${u.b}")
-      queue += u
-      cache(u)
-      stats = (math.max(stats._1, queue.length), stats._2 + 1)
-    }
-    def cached(u: Unification): Bool =
-      cache((u.a.unwrapProvs, u.b.unwrapProvs, u.level)) || cache((u.b.unwrapProvs, u.a.unwrapProvs, u.level))
-    def cache(u: Unification): Unit = cache += ((u.a, u.b, u.level))
-    def addError(u: Unification): Unit = {
-      println(s"UERR $u")
-      error += u
-    }
-    def clear(): Unit = {
-      cache.clear()
-      queue.clear()
-      error.clear()
-      stats = (0, 0)
-    }
-
-    def reportStats: Str = s"U max: ${stats._1}, total: ${stats._2}"
-    override def hasNext: Bool = queue.nonEmpty
-    override def next(): Unification = queue.dequeue()
-
-    def unify(a: ST, b: ST): Unit = {
-      enqueueUnification(Unification.fromLhsRhs(a, b))
-      unify()
-    }
-
-    def unify(): Unit = foreach { u =>
-      println(s"U $u")
-      val st1 = u.a.unwrapProvs
-      val st2 = u.b.unwrapProvs
-
-      (st1, st2) match {
-
-        // U-Sub for typeRef
-        case (tr1: TypeRef, tr2: TypeRef) if tr1.defn === tr2.defn && tr1.targs.length === tr2.targs.length =>
-          subUnify(tr1.targs, tr2.targs, st1, st2, u)
-
-        // U-Error for typeRef
-        case (_: TypeRef, _: TypeRef) => addError(u)
-
-        // U-Sub for tuple
-        case (tup1: TupleType, tup2: TupleType) if tup1.fields.length === tup2.fields.length =>
-          subUnify(tup1.fields.map(_._2), tup2.fields.map(_._2), tup1, tup2, u)
-
-        // U-Error for Tuple
-        case (_: TupleType, _: TupleType) => addError(u)
-
-        // U-Sub for FunctionType
-        case (FunctionType(arg1, res1), FunctionType(arg2, res2)) =>
-          subUnify(Seq(arg1), Seq(arg2), st1, st2, u)
-          subUnify(Seq(res1), Seq(res2), st1, st2, u)
-        // there is no if clause for function types as the sub unifier should handle this
-        // by checking arguments / return values with eachother
-
-
-        // TypeVariable already unified
-        case (tv1: TypeVariable, tv2: TypeVariable) if tv1 === tv2 => ()
-
-        // U-Var-R
-        case (tv: TypeVariable, rhs) =>
-
-          handsideTypeLevel(rhs, tv)
-
-          tv.uni.foreach(tvuni => {
-            if (tvuni.a.unwrapProvs == tv) {
-              enqueueUnification(tvuni.rev.concat(u))
-            } else {
-              enqueueUnification(tvuni.concat(u))
-            }
-          })
-
-          HandleHSTypeVariable(rhs, u)
-
-          tv.uni ::= u
-
-        // U-Var-L
-        case (lhs, tv: TypeVariable) =>
-          handsideTypeLevel(lhs, tv)
-
-          tv.uni.foreach(tvuni => {
-            if (tvuni.a.unwrapProvs == tv) {
-              enqueueUnification(u.concat(tvuni))
-            } else {
-              enqueueUnification(u.concat(tvuni.rev))
-            }
-          })
-
-          HandleHSTypeVariable(lhs, u)
-
-          // Add the current unification to tv's unification list
-          tv.uni ::= u
-
-        case (st1, st2) if st1 != st2 => addError(u)
-        case _ => ()
-      }
-
-    }
-
-    private def handsideTypeLevel(hs :SimpleType, tv: TypeVariable): Unit = {
-      if (hs.level > tv.level) {
-        // Extrude the type of lhs to the level of tv
-        getType(hs)(tv.level)
-        println(s"U EXTR ~> ${hs.toString}")
-      }
-    }
-
-
-    /**
-     * If hs is a type variable, update its unification list
-     * @param hs SimpleType
-     * @param u Unification
-     */
-    private def HandleHSTypeVariable(hs: SimpleType, u: Unification): Unit = {
-      hs match {
-        case tv: TypeVariable => tv.uni ::= u
-        case _ => ()
-      }
-    }
-
-    private def subUnify(args1: Seq[ST], args2: Seq[ST], tr1: ST, tr2: ST, u: Unification): Unit = {
-      val zippedArgs = args1.zip(args2)
-      zippedArgs.foreach { case (arg1, arg2) =>
-        // invoke ctor-uni to compute sub-unifications for their type arguments.
-        val ctor_uni = Ctor_Uni(arg1, arg2, tr1, tr2, u)
-        val unificationQueue = Queue(ctor_uni)
-        val unification = Unification(unificationQueue)
-        enqueueUnification(unification) // enqueue the unification operation
-      }
-    }
-
-    private def getDataFlow(df: DataFlow)(implicit lvl: Int): Unit = df match {
-      case Constraint(a, b) => getType(a); getType(b)
-      case Ctor_Uni(a, b, ctora, ctorb, uni) =>
-        getType(a); getType(b); getType(ctora); getType(ctorb); getUnification(uni)
-    }
-
-     private def getUnification(uni: Unification)(implicit lvl: Int): Unit = uni.flow.foreach(getDataFlow)
-
-    def getType(ty: ST)(implicit lvl: Int): Unit = {
-      if (ty.level <= lvl) () else ty match {
-        case t @ FunctionType(l, r) => getType(l); getType(r)
-        case t @ ComposedType(p, l, r) => getType(l); getType(r)
-        case t @ TupleType(fs) => fs.foreach(tup => getType(tup._2))
-        case tv: TypeVariable =>
-          tv.level = lvl
-          tv.uni.foreach(getUnification(_))
-        case e @ ExtrType(_) => ()
-        case p @ ProvType(und) => getType(und)
-        case _: RigidTypeVariable => ()
-        case tr @ TypeRef(d, ts) => ts.foreach(getType)
-      }
-    }
-
-    def subsume(ty_sch: PolymorphicType, sign: PolymorphicType)
-               (implicit ctx: Ctx, raise: Raise, prov: TypeProvenance): Unit = {
-      enqueueUnification(Unification.fromLhsRhs(ty_sch.instantiate, sign.rigidify))
-    }
-  }
 
   val uniState = new UState()
 
@@ -237,16 +62,16 @@ trait Unifier extends TyperDatatypes {
 
     override def toString: Str = s"L: $level [${a.unwrapProvs} ~ ${b.unwrapProvs}, ${flow.mkString(", ")}]"
 
-    def createCtx(implicit ctx: Ctx): ShowCtx =
+    private def createCtx(implicit ctx: Ctx): ShowCtx =
       ShowCtx.mk(sequenceTVs.map(_.expOcamlTy()(ctx, sequenceTVs)), "?")
 
-    lazy val constraintSequence: Ls[(Constraint, Int)] = flow.iterator.flatMap {
+    private lazy val constraintSequence: Ls[(Constraint, Int)] = flow.iterator.flatMap {
       case c: Constraint => (c, level) :: Nil
       case Ctor_Uni(a, b, ctora, ctorb, uni) =>
         (Constraint.startTransition(a, ctora), level) :: uni.constraintSequence ::: (Constraint.endTransition(ctorb, b), level) :: Nil
     }.toList
 
-    def generateSequenceString(implicit ctx: Ctx): Str = {
+    private def generateSequenceString(implicit ctx: Ctx): Str = {
       implicit val showTV: Set[TV] = sequenceTVs
 
       // Currently only show type sequence for types at the current level of nesting
@@ -281,7 +106,7 @@ trait Unifier extends TyperDatatypes {
       Unification(flow.enqueueAll(other.flow))
     }
 
-    def nestingLevel: Int = flow.map {
+    private def nestingLevel: Int = flow.map {
       case _: Constraint => 0
       case ctor: Ctor_Uni => 1 + ctor.uni.nestingLevel
     }.max
@@ -413,85 +238,6 @@ trait Unifier extends TyperDatatypes {
   object Unification {
     def fromLhsRhs(lhs: ST, rhs: ST): Unification = Unification(Queue(Constraint(lhs, rhs)))
   }
-
-  sealed abstract class DataFlow {
-    def getStart: ST = this match {
-      case c: Constraint => c.a
-      case c: Ctor_Uni => c.a
-    }
-
-    def getEnd: ST = this match {
-      case c: Constraint => c.b
-      case c: Ctor_Uni => c.b
-    }
-
-    def rev: DataFlow = this match {
-      case c@Constraint(a, b) =>
-        val c1 = Constraint(b, a)
-        c1.dir = !c.dir
-        c1
-      case Ctor_Uni(a, b, ctora, ctorb, flow) =>
-        Ctor_Uni(b, a, ctorb, ctora, flow.rev)
-    }
-
-    lazy val level: Int = this match {
-      case _: Constraint => 0
-      case ctor: Ctor_Uni => ctor.uni.level + 1
-    }
-
-    override def toString: Str = this match {
-      case c@Constraint(a, b) => if (c.dir) s"${a.unwrapProvs} <: ${b.unwrapProvs}" else s"${a.unwrapProvs} :> ${b.unwrapProvs}"
-      case Ctor_Uni(a, b, ctora, ctorb, flow) => s"[${a.unwrapProvs} - ${ctora.unwrapProvs} ~ ${ctorb.unwrapProvs} - ${b.unwrapProvs}, $flow]"
-    }
-  }
-
-  case class Constraint(a: ST, b: ST) extends DataFlow {
-    // true flow from a to b
-    var dir = true
-    // this is a special constrain that shows a transition between levels
-    // this variable is only used during error reporting and not during
-    // actual unification
-    // N - default no transition
-    // S(true) - start transition, `a` goes into `b`
-    // S(false) - end transition, `b` comes out of `a`
-    var transition: Opt[Bool] = N
-    def getCleanProvs: Ls[TP] = {
-      val provs = a.uniqueTypeUseLocations reverse_::: b.uniqueTypeUseLocations
-      if (dir) {
-        // first location binds tighter so only use second prov if it's not same as first
-        provs match {
-          case head :: _ => head :: provs.sliding(2).collect {
-            case Seq(TypeProvenance(S(loc1), _, _, _), tp@TypeProvenance(S(loc2), _, _, _)) if loc1 != loc2 => tp
-          }.toList
-          case _ => provs
-        }
-      } else {
-        // second location binds tighter
-        provs match {
-          case ::(head, _) => head :: provs.sliding(2).collect {
-            case Seq(TypeProvenance(S(loc1), _, _, _), tp@TypeProvenance(S(loc2), _, _, _)) if loc1 != loc2 => tp
-          }.toList
-          case Nil => Nil
-        }
-      }
-    }
-  }
-
-  object Constraint {
-    def startTransition(a: ST, b: ST) = {
-      val c = Constraint(a, b)
-      c.transition = S(true)
-      c
-    }
-    def endTransition(a: ST, b: ST) = {
-      val c = Constraint(a, b)
-      c.transition = S(false)
-      c
-    }
-  }
-  case class Ctor_Uni(a: ST, b: ST, ctora: ST, ctorb: ST, uni: Unification) extends DataFlow
-
-
   // Note: maybe this and `extrude` should be merged?
   def freshenAbove(lim: Int, ty: SimpleType, rigidify: Bool = false)(implicit lvl: Int): SimpleType = {
     val freshened = MutMap.empty[TV, SimpleType]
