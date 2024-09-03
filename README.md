@@ -35,6 +35,14 @@ To set up BEC server, You have two options:
       run
       ```
       ![backend_server_activation](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/run.png?raw=true)
+    * To deactivate the sbt terminal, type
+       ```ps
+        exit
+        ```
+        or use the command
+        ```ps
+        ctrl + c
+        ```
 
 2.  **Automatic**:
     * Follow the instructions provided in the [Frontend server](https://github.com/jouwana/BECompiler/blob/main/server/README.md) to automatically set up and run the server.
