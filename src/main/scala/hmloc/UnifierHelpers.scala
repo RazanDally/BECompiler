@@ -18,7 +18,6 @@ trait UnifierHelpers extends TyperDatatypes with DataFlowTrait {
               ) extends Iterator[Unification] {
     var stats: (Int, Int) = (0, 0)
     def enqueueUnification(u: Unification): Unit = if (!cached(u)) {
-      // TODO: fix this so that recursion can be stopped
       if (u.level >= 4) {
         println(s"U X ${u.a} ~ ${u.b}")
         return

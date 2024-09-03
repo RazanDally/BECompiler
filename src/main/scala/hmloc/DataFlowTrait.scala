@@ -37,19 +37,13 @@ trait DataFlowTrait extends TyperDatatypes {
     }
   }
   case class Constraint(a: ST, b: ST) extends DataFlow {
-    // true flow from a to b
     var dir = true
-    // this is a special constrain that shows a transition between levels
-    // this variable is only used during error reporting and not during
-    // actual unification
-    // N - default no transition
-    // S(true) - start transition, `a` goes into `b`
-    // S(false) - end transition, `b` comes out of `a`
+    /* this is a special constrain that shows a transition between levels
+     this variable is only used during error reporting and not during actual unification*/
     var transition: Opt[Bool] = N
     def getCleanProvs: Ls[TP] = {
       val provs = a.uniqueTypeUseLocations reverse_::: b.uniqueTypeUseLocations
       if (dir) {
-        // first location binds tighter so only use second prov if it's not same as first
         provs match {
           case head :: _ => head :: provs.sliding(2).collect {
             case Seq(TypeProvenance(S(loc1), _, _, _), tp@TypeProvenance(S(loc2), _, _, _)) if loc1 != loc2 => tp
@@ -57,7 +51,6 @@ trait DataFlowTrait extends TyperDatatypes {
           case _ => provs
         }
       } else {
-        // second location binds tighter
         provs match {
           case ::(head, _) => head :: provs.sliding(2).collect {
             case Seq(TypeProvenance(S(loc1), _, _, _), tp@TypeProvenance(S(loc2), _, _, _)) if loc1 != loc2 => tp

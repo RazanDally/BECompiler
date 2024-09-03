@@ -8,10 +8,8 @@ import scala.collection.immutable.Queue
 import scala.collection.mutable
 import scala.collection.mutable.{Queue => MutQueue, Set => MutSet, Map => MutMap}
 
-/* Unification solver creates data flows from sub-typing constraints. It also formats
- * reports for incorrect data flows.
- * 
- * The unification algorithm is formally described in the section 4 of the paper.
+/* Unifier creates data flows from sub-typing constraints.
+ * It also formats reports for incorrect data flows.
  */
 trait Unifier extends TyperDatatypes with UnifierHelpers {
   self: Typer =>
@@ -73,8 +71,6 @@ trait Unifier extends TyperDatatypes with UnifierHelpers {
 
     private def generateSequenceString(implicit ctx: Ctx): Str = {
       implicit val showTV: Set[TV] = sequenceTVs
-
-      // Currently only show type sequence for types at the current level of nesting
       val sequenceMessages: List[Message] = constraintSequence.iterator.zipWithIndex.collect {
         case ((c @ Constraint(a, b), lvl), idx) if lvl == level =>
           c.transition match {
@@ -155,8 +151,6 @@ trait Unifier extends TyperDatatypes with UnifierHelpers {
         (msg(ty), locs, flow, level, isLast)
       }
 
-
-      // Helpful show types being projected from their constructors
       def constructorArgumentMessage(c: Ctor_Uni, leftEnd: Bool, level: Int): (Message, Ls[Loc], Bool, Int, Bool) = {
         val ty = selectType(c, leftEnd)
         val locs = extractUniqueTypeUseLocations(ty)
@@ -238,7 +232,7 @@ trait Unifier extends TyperDatatypes with UnifierHelpers {
   object Unification {
     def fromLhsRhs(lhs: ST, rhs: ST): Unification = Unification(Queue(Constraint(lhs, rhs)))
   }
-  // Note: maybe this and `extrude` should be merged?
+
   def freshenAbove(lim: Int, ty: SimpleType, rigidify: Bool = false)(implicit lvl: Int): SimpleType = {
     val freshened = MutMap.empty[TV, SimpleType]
 
