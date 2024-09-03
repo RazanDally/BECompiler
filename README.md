@@ -22,16 +22,20 @@ To set up BEC server, You have two options:
       ```bash
       sbt compile
       ```
+      ![sbt_compile_command](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt_compile.png?raw=true)
       Building the project is only required the first time.
      
     * Run the following command to start the sbt terminal:
       ```
       sbt
       ```
+      ![sbt_server_activation](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt.png?raw=true)
     * Run the following command **in the sbt terminal** in order to start the server:
       ```
       run
       ```
+      ![backend_server_activation](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/run.png?raw=true)
+
 2.  **Automatic**:
     * Follow the instructions provided in the [Frontend server](https://github.com/jouwana/BECompiler/blob/main/server/README.md) to automatically set up and run the server.
 
