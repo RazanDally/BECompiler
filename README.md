@@ -18,22 +18,22 @@ To set up BEC server, You have two options:
 
      Install Scala and sbt by following the Coursier installation instructions at https://get-coursier.io/docs/cli-installation.
      Please ensure that you are using Java version 11-19.
-     If you encounter any issues with sbt, try running the following command:
-       ```bash
-       sbt -java-home <path to your Java version (11-19)>
-       ```
-       Run the following command to build the project:
-      ```bash
-      sbt compile
-      ```
-      ![sbt_compile_command](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt_compile.png?raw=true)
-      Building the project is only required the first time.
-     
     * Run the following command to start the sbt terminal:
       ```
       sbt
       ```
       ![sbt_server_activation](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt.png?raw=true)
+      If you encounter any issues with sbt, try running the following command:
+       ```bash
+       sbt -java-home <path to your Java version (11-19)>
+       ```
+     *  Run the following command **in the sbt terminal** to build the project:
+       ```bash
+       compile
+       ```
+       ![sbt_compile_command](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt_compile.png?raw=true)
+       Building the project is only required the first time.
+     
     * Run the following command **in the sbt terminal** in order to start the server:
       ```
       run
