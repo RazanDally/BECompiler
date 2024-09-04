@@ -28,11 +28,11 @@ To set up BEC server, You have two options:
        sbt -java-home <path to your Java version (11-19)>
        ```
      *  Run the following command **in the sbt terminal** to build the project:
-       ```bash
-       compile
-       ```
-       ![sbt_compile_command](https://github.com/RazanDally/BECompiler/blob/main/installation_gallery/sbt_compile.png?raw=true)
-       Building the project is only required the first time.
+
+        ```bash
+        compile
+        ```
+        Building the project is only required the first time.
      
     * Run the following command **in the sbt terminal** in order to start the server:
       ```
